@@ -34,9 +34,9 @@ O enorme potencial do jogo como recurso didático deve-se ao fato de reunir trê
 **Público-Alvo:** Estudantes a partir da *7ª série do Ensino Fundamental*. <br/>
 **Número de jogadores:** Duas equipes formadas por, *no máximo*, 4 jogadores cada. <br/>
 **Material necessário:**
-    - **2 Computadores:** ambos os computadores serão utilizados para jogar o jogo.
-    - **Instalável do jogo:** Será disponibilizado em breve.
-    - **Conexão estável:** Será necessário uma conexão estável em rede local para a comunicação entre os computadores.
+- **2 Computadores:** ambos os computadores serão utilizados para jogar o jogo.
+- **Instalável do jogo:** Será disponibilizado em breve.
+- **Conexão estável:** Será necessário uma conexão estável em rede local para a comunicação entre os computadores.
 
 ## Como jogar
 Em Construção
