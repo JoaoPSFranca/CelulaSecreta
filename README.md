@@ -4,7 +4,7 @@
     Logo
     <h1 align="center">Cara a Cara com a Célula</h1>
     <p align="center">
-        <strong>Jogo Educativo sobre as Células e suas estruturas.</strong>
+        <strong>Jogo educativo sobre o conceito das Células, suas organelas e suas estruturas.</strong>
     </p>
 </div>
 
