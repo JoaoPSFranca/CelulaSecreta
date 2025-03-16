@@ -34,8 +34,10 @@ O enorme potencial do jogo como recurso didático deve-se ao fato de reunir trê
 
 ## Informações Básicas
 
-**Público-Alvo:** Estudantes a partir da *7ª série do Ensino Fundamental*. <br/>
-**Número de jogadores:** Duas equipes formadas por, *no máximo*, 4 jogadores cada. <br/>
+**Público-Alvo:** Estudantes a partir da *7ª série do Ensino Fundamental*. <br/> <br/>
+
+**Número de jogadores:** Duas equipes formadas por, *no máximo*, 4 jogadores cada. <br/> <br/>
+
 **Material necessário:**
 - **2 Computadores:** ambos os computadores serão utilizados para jogar o jogo.
 - **Instalável do jogo:** Será disponibilizado em breve.
@@ -43,10 +45,12 @@ O enorme potencial do jogo como recurso didático deve-se ao fato de reunir trê
 
 ## Pré Jogo
 
-**Caso possível, os jogadores deverão ficar frente a frente para maior imersão no jogo.** <br>
+**Caso possível, os jogadores deverão ficar frente a frente para maior imersão no jogo.** <br/> <br/>
+As regras e os tipos de perguntas que poderão ser utilizadas deverão ser conversadas e decididas coletivamente entre o professor e os alunos, onde o professor poderá decidir entre deixar as perguntas livres podendo ser feitas verbalmente ou através do chat disponibilizado no jogo. 
+<!--
 As regras e os tipos de perguntas que poderão ser utilizadas deverão ser conversadas e decididas coletivamente entre o professor e os alunos. Entre as opções, o professor poderá: 
 - decidir entre deixar as perguntas livres podendo ser feitas verbalmente ou através do chat disponibilizado no jogo.
-- utilizar um banco de dados pré estipulado para as perguntas que poderão ser feitas, onde em cada rodada, uma das equipes poderá selecionar uma pergunta dentre as possiveis.
+- utilizar um banco de dados pré estipulado para as perguntas que poderão ser feitas, onde em cada rodada, uma das equipes poderá selecionar uma pergunta dentre as possiveis. -->
 
 > É válido ressaltar que as perguntas deverão ser respondidas **APENAS** com *"Sim"* ou *"Não"*.
 
@@ -64,9 +68,9 @@ As regras e os tipos de perguntas que poderão ser utilizadas deverão ser conve
 
 4. Em sua vez, as equipes poderão selecionar qual ação tomarão no jogo, escolhendo entre realizar um palpite ou uma pergunta. Ao pressionar o botão das perguntas, será liberado o chat para digitação (ou seleção) da pergunta a ser realizada. Feita a pergunta e equipe adversária terá seu chat liberado para a seleção da resposta, com as opções de *"Sim"* ou *"Não"*.
 
-5. Ao saber a resposta da equipe adversária, os jogadores poderão clicar nas cartas que consideram não atender as características descritas pela equipe adversária. As cartas selecionadas ficarão viradas e inativas.
+5. Ao saber a resposta da equipe adversária, os jogadores poderão clicar nas cartas que consideram não atender as características descritas pela equipe adversária. As cartas selecionadas ficarão em preto e branco e, após ser pressionado o botão de pergunta ou de resposta, elas se tornarão inativas, permitindo que os jogadores desfaçam uma ação (caso necessário) até o término da rodada.
 
-6. Caso uma equipe entenda que já sabe qual a figura que está com o adversário, **na sua vez**, pode fazer um palpite. Ao pressionar o botão de palpite, a equipe poderá selecionar uma carta (dentre as ainda disponíveis) e o sistema verificará a resposta. **Caso esteja errado o palpite, a equipe perderá o jogo**.
+6. Caso uma equipe entenda que já sabe qual a figura que está com o adversário, **na sua vez**, pode fazer um palpite. Ao pressionar o botão de palpite, a equipe poderá selecionar uma carta (dentre as ainda disponíveis) e o sistema verificará a resposta. **Caso esteja errado o palpite, a equipe perderá o jogo e será mostrada na tela a carta da equipe adversária**.
 
 > Note que as equipes **SEMPRE** terão que decidir entre fazer o palpite ou fazer uma pergunta, impossibilitando realizar a pergunta e um palpite em apenas uma jogada. Caso a equipe descubra a carta de acordo com a resposta da equipe adversária, deverá esperar até a próxima rodada para realizar seu palpite.
 
