@@ -1,8 +1,10 @@
+![Alt](https://repobeats.axiom.co/api/embed/aaa81ac27ba777c6228e8675f89947473ba26ad3.svg "Repobeats analytics image")
+
 <br/>
 
 <div align="center"> 
     Logo
-    <h1 align="center">Cara a Cara com a Célula</h1>
+    <h1 align="center">Célula Secreta</h1>
     <p align="center">
         <strong>Jogo educativo sobre o conceito das Células, suas organelas e suas estruturas.</strong>
     </p>
@@ -21,7 +23,7 @@
 
 ## Resumo
 
-O jogo **Cara a Cara com a Célula** se trata de um instrumento para trabalhar, em sala de aula, o conceito de célula e suas correspondentes organelas e estruturas. No jogo, são contemplados os cinco reinos: *Monera*, *Fungi*, *Protista*, *Plantae* e *Animalia*. O jogo visa classificar as células segundo as suas características *morfológicas*, *estruturais* e *fisiológicas*, de uma forma divertida. <br> <br>
+O jogo **Célula Secreta** se trata de um instrumento para trabalhar, em sala de aula, o conceito de célula e suas correspondentes organelas e estruturas. No jogo, são contemplados os cinco reinos: *Monera*, *Fungi*, *Protista*, *Plantae* e *Animalia*. O jogo visa classificar as células segundo as suas características *morfológicas*, *estruturais* e *fisiológicas*, de uma forma divertida. <br> <br>
 O desenvolvimento desta atividade pode propiciar discussões sobre os temas:
     - Conceitos de células eucarióticas e procarióticas;
     - Estrutura das organelas e suas funções na célula;
