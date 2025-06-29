@@ -25,10 +25,10 @@
 
 O jogo **Célula Secreta** se trata de um instrumento para trabalhar, em sala de aula, o conceito de célula e suas correspondentes organelas e estruturas. No jogo, são contemplados os cinco reinos: *Monera*, *Fungi*, *Protista*, *Plantae* e *Animalia*. O jogo visa classificar as células segundo as suas características *morfológicas*, *estruturais* e *fisiológicas*, de uma forma divertida. <br> <br>
 O desenvolvimento desta atividade pode propiciar discussões sobre os temas:
-    - Conceitos de células eucarióticas e procarióticas;
-    - Estrutura das organelas e suas funções na célula;
-    - Processos celulares para geração de energia;
-    - Além de outros tópicos relacionados.
+- Conceitos de células eucarióticas e procarióticas;
+- Estrutura das organelas e suas funções na célula;
+- Processos celulares para geração de energia;
+- Além de outros tópicos relacionados.
 
 ## Função Pedagógica
 
