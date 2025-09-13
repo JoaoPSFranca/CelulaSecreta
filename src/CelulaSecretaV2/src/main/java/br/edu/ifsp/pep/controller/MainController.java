@@ -65,8 +65,8 @@ public class MainController {
         int cartaSorteada = rand.nextInt(14);
 
         suaCartaImage.setImage(imagensCartas[cartaSorteada]);
-        suaCartaImage.setFitWidth(225);
-        suaCartaImage.setFitHeight(357);
+        suaCartaImage.setFitWidth(245);
+        suaCartaImage.setFitHeight(368);
         suaCartaImage.setPreserveRatio(false);
 
         chatInput.setDisable(true);
