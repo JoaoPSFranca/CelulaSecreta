@@ -1,9 +1,12 @@
 package br.edu.ifsp.pep.controller;
 
+import br.edu.ifsp.pep.model.Carta;
+import br.edu.ifsp.pep.service.CartaService;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
-import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.image.Image;
@@ -28,46 +31,111 @@ public class MainController {
     @FXML private Button btnPalpitar;
     @FXML private ScrollPane chatScroll;
     @FXML private StackPane rootPane;
+    @FXML private VBox zoomContainer;
+    @FXML private ImageView zoomCartaImageView;
+
+    private CartaService cartaService = new CartaService();
+    private List<Carta> todasAsCartas;
+    private Carta suaCartaSecreta;
 
     private boolean[] cartaAtiva = new boolean[20];
     private Button[] cartaBotoes = new Button[20];
-    private Image[] imagensCartas = new Image[14];
     private boolean chatLiberado = false;
     private boolean modoPalpite = false;
     private Button cartaSelecionada;
 
+    private Image imagemVerso;
+
     @FXML
     public void initialize() {
-        for (int i = 0; i < 14; i++) {
-            imagensCartas[i] = new Image(getClass().getResource("/images/celulas/Celula" + (i + 1) + ".png").toExternalForm());
-        }
+        imagemVerso = new Image(getClass().getResource("/images/verso.png").toExternalForm());
+
+        todasAsCartas = cartaService.carregarCartas();
+        // Embaralha as cartas para que a ordem no grid mude a cada jogo
+        //Collections.shuffle(todasAsCartas);
 
         int id = 0;
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 5; col++) {
-                Button carta = new Button();
-                carta.getStyleClass().add("card-button");
-                carta.setPrefSize(110, 165);
+                if (id < todasAsCartas.size()) {
+                    Carta cartaAtual = todasAsCartas.get(id);
 
-                int index = id;
-                String classe = "frente-Celula" + ((index % 14) + 1);
-                carta.getStyleClass().addAll("card-button", classe);
+                    Button cartaButton = new Button();
+                    cartaButton.getStyleClass().add("card-button");
+                    cartaButton.setUserData(cartaAtual);
 
-                carta.setOnAction(e -> alternarCarta(carta, index));
+                    cartaButton.setUserData(cartaAtual);
 
-                cartaBotoes[index] = carta;
-                cardGrid.add(carta, col, row);
-                id++;
+                    String imagePath = "/images/carta_menor/" + cartaAtual.getNomeImagem() + ".png";
+                    Image frenteImage = new Image(getClass().getResource(imagePath).toExternalForm());
+                    ImageView frenteImageView = new ImageView(frenteImage);
+                    frenteImageView.setFitHeight(165);
+                    frenteImageView.setFitWidth(110);
+                    frenteImageView.setPreserveRatio(true);
+
+                    cartaButton.setGraphic(frenteImageView);
+
+                    int r = row;
+                    int index = id;
+
+                    cartaButton.setOnMouseEntered(event -> {
+                        if (cartaAtiva[index]) {
+                            return;
+                        }
+
+                        Carta cartaDoBotao = (Carta) cartaButton.getUserData();
+                        String imagemMaiorPath = "/images/carta_maior/" + cartaDoBotao.getNomeImagem() + ".png";
+                        Image imagemMaior = new Image(getClass().getResource(imagemMaiorPath).toExternalForm());
+
+                        zoomCartaImageView.setImage(imagemMaior);
+
+                        Bounds boundsDoBotao = cartaButton.localToScene(cartaButton.getBoundsInLocal());
+
+                        double xPos = boundsDoBotao.getMinX() + (boundsDoBotao.getWidth() / 2) - (zoomContainer.getWidth() / 2);
+
+                        double yPos;
+                        double offset = 10.0;
+
+                        //evita que o zoom apareça fora da tela
+                        if (r <= 1){
+                            yPos = boundsDoBotao.getMaxY() + offset;
+                            yPos += 165;
+                        }
+                        else{
+                            yPos = boundsDoBotao.getMinY() - zoomContainer.getHeight() - offset;
+                            yPos -= 175;
+                        }
+
+                        Bounds boundsDoRootPane = rootPane.localToScene(rootPane.getBoundsInLocal());
+                        zoomContainer.setTranslateX(xPos - boundsDoRootPane.getMinX());
+                        zoomContainer.setTranslateY(yPos - boundsDoRootPane.getMinY());
+
+                        zoomContainer.setVisible(true);
+                    });
+
+                    cartaButton.setOnMouseExited(event -> {
+                        zoomContainer.setVisible(false);
+                    });
+
+                    cartaButton.setOnAction(e -> alternarCarta(cartaButton, index));
+
+                    cartaBotoes[index] = cartaButton;
+                    cardGrid.add(cartaButton, col, row);
+                    id++;
+                }
             }
         }
 
         Random rand = new Random();
-        int cartaSorteada = rand.nextInt(14);
+        suaCartaSecreta = todasAsCartas.get(rand.nextInt(todasAsCartas.size()));
 
-        suaCartaImage.setImage(imagensCartas[cartaSorteada]);
-        suaCartaImage.setFitWidth(245);
-        suaCartaImage.setFitHeight(368);
-        suaCartaImage.setPreserveRatio(false);
+        String secretImagePath = "/images/carta_sorteada/" + suaCartaSecreta.getNomeImagem() + ".png";
+        Image secretImage = new Image(getClass().getResource(secretImagePath).toExternalForm());
+        suaCartaImage.setImage(secretImage);
+
+//        suaCartaImage.setFitWidth(245);
+//        suaCartaImage.setFitHeight(368);
+//        suaCartaImage.setPreserveRatio(false);
 
         chatInput.setDisable(true);
         btnSim.setOnAction(this::onSim);
@@ -80,30 +148,36 @@ public class MainController {
     }
 
     private void alternarCarta(Button carta, int index) {
-        if (modoPalpite && !cartaAtiva[index]) {
-            if (cartaSelecionada != null) {
-                cartaSelecionada.getStyleClass().remove("selecionada");
-            }
-            cartaSelecionada = carta;
-            cartaSelecionada.getStyleClass().add("selecionada");
-            mostrarPainelConfirmacao();
+        if (modoPalpite && cartaAtiva[index]) {
             return;
         }
 
-        RotateTransition rotateOut = new RotateTransition(Duration.millis(150), carta);
+        Node graphicNode = carta.getGraphic();
+
+        RotateTransition rotateOut = new RotateTransition(Duration.millis(150), graphicNode);
         rotateOut.setAxis(Rotate.Y_AXIS);
         rotateOut.setFromAngle(0);
         rotateOut.setToAngle(90);
         rotateOut.setInterpolator(Interpolator.EASE_BOTH);
 
         rotateOut.setOnFinished(e -> {
+            ImageView newGraphic;
+            // CORREÇÃO: Verificamos se a carta AGORA está ativa. Se sim, mostramos o verso.
             if (cartaAtiva[index]) {
-                carta.getStyleClass().add("ativa");
-            } else {
-                carta.getStyleClass().remove("ativa");
+                newGraphic = new ImageView(imagemVerso);
+            } else { // Se não está ativa, mostramos a frente.
+                Carta cartaDoBotao = (Carta) carta.getUserData();
+                String imagePath = "/images/carta_menor/" + cartaDoBotao.getNomeImagem() + ".png";
+                Image frenteImage = new Image(getClass().getResource(imagePath).toExternalForm());
+                newGraphic = new ImageView(frenteImage);
             }
 
-            RotateTransition rotateIn = new RotateTransition(Duration.millis(150), carta);
+            newGraphic.setFitHeight(165);
+            newGraphic.setFitWidth(110);
+            newGraphic.setPreserveRatio(true);
+            carta.setGraphic(newGraphic);
+
+            RotateTransition rotateIn = new RotateTransition(Duration.millis(150), newGraphic);
             rotateIn.setAxis(Rotate.Y_AXIS);
             rotateIn.setFromAngle(270);
             rotateIn.setToAngle(360);
@@ -111,10 +185,10 @@ public class MainController {
             rotateIn.play();
         });
 
+        // O estado é invertido ANTES da animação, e a animação reage a esse NOVO estado.
         cartaAtiva[index] = !cartaAtiva[index];
         rotateOut.play();
     }
-
 
     public void onSim(ActionEvent e) {
         addChatMessage("Sim", true);

@@ -11,7 +11,7 @@ public class App extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
         scene.getStylesheets().add(getClass().getResource("/css/Style.css").toExternalForm());
-        scene.getRoot().setStyle("-fx-background-color: #f8f8f8;");
+        scene.getRoot().setStyle("-fx-background-color: #394a46;");
         stage.setTitle("Célula Secreta");
         stage.setScene(scene);
         stage.show();

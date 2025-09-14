@@ -34,7 +34,7 @@
                         <graphic>
                             <ImageView fitHeight="23" fitWidth="23">
                                 <image>
-                                    <Image url="@../images/Arrow.png" preserveRatio="true"/>
+                                    <Image url="@../images/enter.png" preserveRatio="true"/>
                                 </image>
                             </ImageView>
                         </graphic>
@@ -67,13 +67,13 @@
                 </padding>
 
                 <VBox spacing="10" alignment="CENTER">
-                    <Label text="Sua Carta" style="-fx-font-size: 16;"/>
+                    <Label text="Sua Carta" style="-fx-font-size: 20;"/>
                     <ImageView fx:id="suaCartaImage" id="suaCartaImage"/>
                 </VBox>
 
                 <VBox spacing="10">
                     <Label text="Código da Sala"/>
-                    <TextField fx:id="codigoSala" id="codigoSala" editable="false"/>
+                    <TextField fx:id="codigoSala" id="codigoSala" editable="false" style="-fx-text-alignment: center;"/>
                 </VBox>
 
                 <Button fx:id="btnPalpitar" id="btnPalpitar" text="Palpitar"/>
@@ -82,4 +82,10 @@
         </right>
     </BorderPane>
 
+    <VBox fx:id="zoomContainer" alignment="CENTER" styleClass="zoom-pane"
+          maxWidth="220" maxHeight="330" managed="false" visible="false">
+        <children>
+            <ImageView fx:id="zoomCartaImageView" fitWidth="220" fitHeight="330" preserveRatio="true"/>
+        </children>
+    </VBox>
 </StackPane>

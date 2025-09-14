@@ -1,95 +1,87 @@
 /* Cartas do grid */
 .card-button {
-    -fx-pref-width: 120px;
-    -fx-pref-height: 165px;
-    -fx-background-radius: 5;
-    -fx-border-color: #625b71;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-color: #a0d4c8;
     -fx-border-style: solid;
     -fx-border-width: 2px;
     -fx-border-radius: 5px;
-    -fx-background-size: cover;
-    -fx-background-repeat: no-repeat;
-    -fx-background-position: center;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 3);
     -fx-cursor: hand;
-    -fx-transition: all 0.3s ease-in-out;
-}
-
-.card-button.frente-Celula1 {
-    -fx-background-image: url("../images/celulas/Celula1.png");
-}
-.card-button.frente-Celula2 {
-    -fx-background-image: url("../images/celulas/Celula2.png");
-}
-.card-button.frente-Celula3 {
-    -fx-background-image: url("../images/celulas/Celula3.png");
-}
-.card-button.frente-Celula4 {
-    -fx-background-image: url("../images/celulas/Celula4.png");
-}
-.card-button.frente-Celula5 {
-    -fx-background-image: url("../images/celulas/Celula5.png");
-}
-.card-button.frente-Celula6 {
-    -fx-background-image: url("../images/celulas/Celula6.png");
-}
-.card-button.frente-Celula7 {
-    -fx-background-image: url("../images/celulas/Celula7.png");
-}
-.card-button.frente-Celula8 {
-    -fx-background-image: url("../images/celulas/Celula8.png");
-}
-.card-button.frente-Celula9 {
-    -fx-background-image: url("../images/celulas/Celula9.png");
-}
-.card-button.frente-Celula10 {
-    -fx-background-image: url("../images/celulas/Celula10.png");
-}
-.card-button.frente-Celula11 {
-    -fx-background-image: url("../images/celulas/Celula11.png");
-}
-.card-button.frente-Celula12 {
-    -fx-background-image: url("../images/celulas/Celula12.png");
-}
-.card-button.frente-Celula13 {
-    -fx-background-image: url("../images/celulas/Celula13.png");
-}
-.card-button.frente-Celula14 {
-    -fx-background-image: url("../images/celulas/Celula14.png");
-}
-
-.card-button.ativa {
-    -fx-background-image: url("../images/verso.png");
+    -fx-transition: all 0.2s ease-in-out;
 }
 
 /* Botão de enviar*/
 #btnEnviar {
-    -fx-background-color: #625b71;
+    -fx-background-color: #31413d;
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
     -fx-background-radius: 50;
+    -fx-border-radius: 50%;
     -fx-padding: 8;
     -fx-alignment: center;
+    -fx-cursor: hand;
+}
+#btnEnviar .image-view {
+    -fx-image: url("../images/enter.png");
+    -fx-fill: #394a46;
 }
 
-/* Botões Sim / Não */
-#btnSim, #btnNao, .round-button {
-    -fx-pref-width: 140px;
-    -fx-pref-height: 55px;
+/* Botões de Ação (Sim, Não, Palpitar, Perguntar) */
+#btnSim, #btnNao, .round-button, #btnPerguntar {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #e0e5e4;
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
+    -fx-font-size: 20px;
     -fx-background-radius: 50;
-    -fx-padding: 12 12;
-    -fx-font-size: 16px;
-    -fx-background-color: #625b71;
-    -fx-text-fill: white;
+    -fx-border-radius: 50;
+    -fx-pref-height: 55px;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
 }
 
-/* Botões Palpitar / Perguntar */
-#btnPalpitar, #btnPerguntar {
+#btnSim, #btnNao {
+    -fx-pref-width: 145px;
+}
+
+#btnPerguntar {
+    -fx-font-size: 18px;
     -fx-pref-width: 259px;
     -fx-pref-height: 64px;
+}
+
+/* Efeito de hover para TODOS os botões de ação */
+#btnSim:hover, #btnNao:hover, .round-button:hover, #btnPerguntar:hover, #btnEnviar:hover {
+    -fx-background-color: #a0d4c8;
+    -fx-border-color: #31413d;
+    -fx-text-fill: #31413d;
+}
+
+#btnPalpitar{
+    -fx-background-color: #a0d4c8;
+    -fx-border-color: #31413d;
+    -fx-text-fill: #31413d;
+    -fx-border-width: 2px;
+    -fx-font-size: 20px;
     -fx-background-radius: 50;
-    -fx-padding: 12 12;
-    -fx-font-size: 18px;
-    -fx-background-color: #625b71;
-    -fx-text-fill: white;
+    -fx-border-radius: 50;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    fx-font-size: 18px;
+    -fx-pref-width: 259px;
+    -fx-pref-height: 64px;
+}
+
+#btnPalpitar:hover {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #e0e5e4;
+    -fx-border-color: #a0d4c8;
+}
+
+/* Altera o ícone do botão Enviar durante o hover */
+#btnEnviar:hover .image-view {
+    -fx-image: url("../images/dark_enter.png");
 }
 
 /* Campo de código da sala */
@@ -97,18 +89,15 @@
     -fx-pref-width: 209px;
     -fx-pref-height: 64px;
     -fx-alignment: center;
-    -fx-background-radius: 8;
     -fx-font-size: 16px;
-    -fx-border-color: #ccc;
-    -fx-border-radius: 8;
 }
 
 /* Sua Carta (imagem) */
 #suaCartaImage {
-    -fx-border-color: #625b71;
+    -fx-border-color: #a0d4c8;
     -fx-border-style: solid;
-    -fx-border-width: 2px;
-    -fx-border-radius: 5px;
+    -fx-border-width: 5px;
+    -fx-border-radius: 50%;
     -fx-min-width: 225px;
     -fx-min-height: 357px;
 }
@@ -121,18 +110,25 @@
     -fx-font-size: 14px;
 }
 
+.label {
+    -fx-text-fill: #e0e5e4;
+    -fx-font-size: 20px;
+}
+
 /* Mensagens do chat */
 .chat-msg-player {
-    -fx-background-color: #625b71;
-    -fx-text-fill: white;
+    -fx-background-color: #4b5f5b; /* Um verde um pouco mais claro para a sua mensagem */
+    -fx-text-fill: #e0e5e4;
     -fx-padding: 10px;
     -fx-background-radius: 15;
+    -fx-font-size: 13px;
 }
 .chat-msg-received {
-    -fx-background-color: #ece6f0;
-    -fx-text-fill: black;
+    -fx-background-color: #40514d; /* Um tom intermediário para a mensagem recebida */
+    -fx-text-fill: #e0e5e4;
     -fx-padding: 10px;
     -fx-background-radius: 15;
+    -fx-font-size: 13px;
 }
 
 /* Margem do app */
@@ -148,4 +144,33 @@
     -fx-border-radius: 25px;
     -fx-border-width: 1px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 4);
+}
+
+.text-field {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #e0e5e4;
+    -fx-prompt-text-fill: #99a6a3;
+    -fx-background-radius: 8;
+    -fx-border-color: #4b5f5b;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-pane .viewport {
+    -fx-background-color: #31413d; /* Fundo do chat igual aos inputs */
+}
+.scroll-pane .corner {
+    -fx-background-color: transparent;
+}
+
+.zoom-pane {
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 3px;
+    -fx-border-radius: 10px;
+    -fx-background-color: #394a46;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 20, 0, 0, 0);
 }
