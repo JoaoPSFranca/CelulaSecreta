@@ -1,6 +1,7 @@
 package br.edu.ifsp.pep.controller;
 
 import br.edu.ifsp.pep.model.Carta;
+import br.edu.ifsp.pep.model.Equipe;
 import br.edu.ifsp.pep.service.CartaService;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
@@ -36,13 +37,14 @@ public class MainController {
 
     private CartaService cartaService = new CartaService();
     private List<Carta> todasAsCartas;
-    private Carta suaCartaSecreta;
 
     private boolean[] cartaAtiva = new boolean[20];
     private Button[] cartaBotoes = new Button[20];
     private boolean chatLiberado = false;
     private boolean modoPalpite = false;
     private Button cartaSelecionada;
+    private Equipe suaEquipe;
+    private Equipe equipeOponente;
 
     private Image imagemVerso;
 
@@ -96,7 +98,7 @@ public class MainController {
                         double yPos;
                         double offset = 10.0;
 
-                        //evita que o zoom apareça fora da tela
+                        //evita que o 'zoom' apareça fora da tela
                         if (r <= 1){
                             yPos = boundsDoBotao.getMaxY() + offset;
                             yPos += 165;
@@ -126,16 +128,18 @@ public class MainController {
             }
         }
 
-        Random rand = new Random();
-        suaCartaSecreta = todasAsCartas.get(rand.nextInt(todasAsCartas.size()));
+        List<Carta> baralhoParaSorteio = new ArrayList<>(todasAsCartas);
+        Collections.shuffle(baralhoParaSorteio);
 
-        String secretImagePath = "/images/carta_sorteada/" + suaCartaSecreta.getNomeImagem() + ".png";
+        suaEquipe = new Equipe("Sua Equipe");
+        equipeOponente = new Equipe("Equipe Oponente");
+
+        suaEquipe.setCartaSecreta(baralhoParaSorteio.removeFirst());
+        equipeOponente.setCartaSecreta(baralhoParaSorteio.removeFirst());
+
+        String secretImagePath = "/images/carta_sorteada/" + suaEquipe.getCartaSecreta().getNomeImagem() + ".png";
         Image secretImage = new Image(getClass().getResource(secretImagePath).toExternalForm());
         suaCartaImage.setImage(secretImage);
-
-//        suaCartaImage.setFitWidth(245);
-//        suaCartaImage.setFitHeight(368);
-//        suaCartaImage.setPreserveRatio(false);
 
         chatInput.setDisable(true);
         btnSim.setOnAction(this::onSim);
@@ -145,10 +149,23 @@ public class MainController {
         btnPalpitar.setOnAction(this::onPalpitar);
 
         chatBox.setSpacing(8);
+
+//        System.out.println("A carta do oponente é: " + equipeOponente.getCartaSecreta().getNomeImagem());
     }
 
     private void alternarCarta(Button carta, int index) {
-        if (modoPalpite && cartaAtiva[index]) {
+        if (modoPalpite && !cartaAtiva[index]) {
+            if (cartaSelecionada != null) {
+                cartaSelecionada.getStyleClass().remove("selecionada");
+            }
+            cartaSelecionada = carta;
+            cartaSelecionada.getStyleClass().add("selecionada");
+
+            mostrarPainelConfirmacao();
+            return;
+        }
+
+        if(modoPalpite && cartaAtiva[index]) {
             return;
         }
 
@@ -218,83 +235,101 @@ public class MainController {
 
     public void onPalpitar(ActionEvent e) {
         modoPalpite = true;
-
-        List<Button> visiveis = new ArrayList<>();
-        for (int i = 0; i < cartaBotoes.length; i++) {
-            if (!cartaAtiva[i]) {
-                visiveis.add(cartaBotoes[i]);
-            }
-        }
-
-        cardGrid.getChildren().clear();
-        int index = 0;
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 5; col++) {
-                if (index < visiveis.size()) {
-                    cardGrid.add(visiveis.get(index), col, row);
-                    index++;
-                }
-            }
-        }
+        // Adiciona um 'feedback' visual, talvez mudando o prompt de algum texto (opcional)
+        // Por enquanto, apenas ativar o modo é suficiente.
+        System.out.println("Modo Palpite ATIVADO. Selecione uma carta.");
     }
 
     private void mostrarPainelConfirmacao() {
-        VBox overlay = new VBox(15);
-        overlay.setAlignment(Pos.CENTER);
-        overlay.getStyleClass().add("confirmation-pane");
+        cardGrid.setDisable(true);
+        btnPalpitar.setDisable(true);
+        btnPerguntar.setDisable(true);
 
-        StackPane.setAlignment(overlay, Pos.CENTER);
+        VBox confirmacaoPane = new VBox(20);
+        confirmacaoPane.setAlignment(Pos.CENTER);
+        confirmacaoPane.setStyle("-fx-background-color: #31413d; -fx-padding: 40; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
+        confirmacaoPane.setMaxSize(450, 400);
 
-        Label msg = new Label("Deseja confirmar escolha?");
-        msg.setStyle("-fx-font-size: 16px;");
+        Label msg = new Label("Confirmar este palpite?");
+        msg.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
+
+        Image imagemPalpite = ((ImageView) cartaSelecionada.getGraphic()).getImage();
+        ImageView palpiteView = new ImageView(imagemPalpite);
+        palpiteView.setFitHeight(165);
+        palpiteView.setFitWidth(110);
 
         Button confirmar = new Button("Confirmar");
         Button cancelar = new Button("Cancelar");
         confirmar.getStyleClass().add("round-button");
         cancelar.getStyleClass().add("round-button");
 
-        HBox botoes = new HBox(10, confirmar, cancelar);
+        HBox botoes = new HBox(15, confirmar, cancelar);
         botoes.setAlignment(Pos.CENTER);
 
-        overlay.getChildren().addAll(cartaSelecionada, msg, botoes);
-        rootPane.getChildren().add(overlay);
+        confirmacaoPane.getChildren().addAll(msg, palpiteView, botoes);
+        rootPane.getChildren().add(confirmacaoPane);
 
         confirmar.setOnAction(e -> {
-            System.out.println("Palpite confirmado!");
-            rootPane.getChildren().remove(overlay);
-            modoPalpite = false;
+            Carta cartaDoPalpite = (Carta) cartaSelecionada.getUserData();
+            Carta cartaSecretaOponente = equipeOponente.getCartaSecreta();
+
+            if (cartaDoPalpite.getId() == cartaSecretaOponente.getId()) {
+                exibirFimDeJogo(true);
+            } else {
+                exibirFimDeJogo(false);
+            }
+            rootPane.getChildren().remove(confirmacaoPane);
         });
 
         cancelar.setOnAction(e -> {
             cartaSelecionada.getStyleClass().remove("selecionada");
-            rootPane.getChildren().remove(overlay);
+            cartaSelecionada = null;
             modoPalpite = false;
 
-            cardGrid.getChildren().clear();
-            int index = 0;
-            for (int row = 0; row < 4; row++) {
-                for (int col = 0; col < 5; col++) {
-                    cartaBotoes[index].setVisible(true);
+            cardGrid.setDisable(false);
+            btnPalpitar.setDisable(false);
+            btnPerguntar.setDisable(false);
 
-                    if (cartaAtiva[index]){
-                        cartaBotoes[index].getStyleClass().remove("ativa");
-                        cartaBotoes[index].getStyleClass().add("ativa");
-                    } else {
-                        cartaBotoes[index].getStyleClass().remove("ativa");
-                    }
-
-                    cardGrid.add(cartaBotoes[index], col, row);
-                    index++;
-                }
-            }
-
-            for (int i = 0; i < cartaBotoes.length; i++) {
-                cartaBotoes[i].setVisible(true);
-                if (cartaAtiva[i]) {
-                    cartaBotoes[i].getStyleClass().add("ativa");
-                }
-            }
+            rootPane.getChildren().remove(confirmacaoPane);
         });
+    }
+
+    private void exibirFimDeJogo(boolean vitoria) {
+        cardGrid.setDisable(true);
+        btnPalpitar.setDisable(true);
+        btnPerguntar.setDisable(true);
+
+        VBox fimDeJogoPane = new VBox(20);
+        fimDeJogoPane.setAlignment(Pos.CENTER);
+        fimDeJogoPane.setStyle("-fx-background-color: #31413d; -fx-padding: 50; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
+        fimDeJogoPane.setMaxSize(400, 300);
+
+        Label titulo = new Label();
+        if (vitoria) {
+            titulo.setText("Você Venceu!");
+            titulo.setStyle("-fx-font-size: 32px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;");
+        } else {
+            titulo.setText("Você Perdeu!");
+            titulo.setStyle("-fx-font-size: 32px; -fx-text-fill: #ff8a80; -fx-font-weight: bold;");
+
+            Label info = new Label("A carta secreta era:");
+            info.setStyle("-fx-font-size: 16px; -fx-text-fill: #e0e5e4;");
+
+            ImageView cartaCorretaView = new ImageView();
+            String path = "/images/carta_maior/" + equipeOponente.getCartaSecreta().getNomeImagem() + ".png";
+            cartaCorretaView.setImage(new Image(getClass().getResource(path).toExternalForm()));
+            cartaCorretaView.setFitHeight(165);
+            cartaCorretaView.setPreserveRatio(true);
+
+            fimDeJogoPane.getChildren().addAll(info, cartaCorretaView);
+        }
+
+        Button fechar = new Button("Fechar Jogo");
+        fechar.getStyleClass().add("round-button");
+        fechar.setOnAction(e -> System.exit(0));
+
+        fimDeJogoPane.getChildren().addAll(titulo, fechar);
+        rootPane.getChildren().add(fimDeJogoPane);
     }
 
     private void addChatMessage(String message, boolean fromPlayer) {

@@ -174,3 +174,8 @@
     -fx-background-radius: 10px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 20, 0, 0, 0);
 }
+
+.card-button.selecionada {
+    -fx-effect: dropshadow(gaussian, #f0e68c, 20, 0.8, 0, 0); /* Adiciona um brilho dourado */
+    -fx-border-color: #f0e68c;
+}
