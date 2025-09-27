@@ -21,25 +21,11 @@
 
                 <Label text="Chat" style="-fx-font-size: 18;"/>
 
-                <ScrollPane fx:id="chatScroll" fitToWidth="true" prefHeight="500" vvalue="1.0"
+                <ScrollPane fx:id="chatScroll" fitToWidth="true" VBox.vgrow="ALWAYS" vvalue="1.0"
                             style="-fx-background-color: transparent;">
                     <VBox fx:id="chatBox" spacing="8" alignment="BOTTOM_LEFT"
                           style="-fx-background-color: transparent; -fx-padding: 10 20;"/>
                 </ScrollPane>
-
-                <HBox spacing="7" alignment="CENTER_LEFT">
-                    <TextField fx:id="chatInput" promptText="Digite aqui..."
-                               style="-fx-background-radius: 28; -fx-pref-width: 240px; -fx-pref-height: 41px;"/>
-                    <Button fx:id="btnEnviar" id="btnEnviar">
-                        <graphic>
-                            <ImageView fitHeight="23" fitWidth="23">
-                                <image>
-                                    <Image url="@../images/enter.png" preserveRatio="true"/>
-                                </image>
-                            </ImageView>
-                        </graphic>
-                    </Button>
-                </HBox>
 
                 <HBox spacing="12">
                     <Button fx:id="btnSim" text="Sim"/>

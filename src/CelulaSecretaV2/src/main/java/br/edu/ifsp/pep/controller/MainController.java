@@ -2,8 +2,12 @@ package br.edu.ifsp.pep.controller;
 
 import br.edu.ifsp.pep.model.Carta;
 import br.edu.ifsp.pep.model.Equipe;
+import br.edu.ifsp.pep.model.Turno;
+import br.edu.ifsp.pep.model.Pergunta;
+import br.edu.ifsp.pep.service.PerguntaService;
 import br.edu.ifsp.pep.service.CartaService;
 import javafx.animation.Interpolator;
+import javafx.animation.PauseTransition;
 import javafx.animation.RotateTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -21,13 +25,11 @@ import java.util.*;
 
 public class MainController {
     @FXML private VBox chatBox;
-    @FXML private TextField chatInput;
     @FXML private TextField codigoSala;
     @FXML private ImageView suaCartaImage;
     @FXML private GridPane cardGrid;
     @FXML private Button btnSim;
     @FXML private Button btnNao;
-    @FXML private Button btnEnviar;
     @FXML private Button btnPerguntar;
     @FXML private Button btnPalpitar;
     @FXML private ScrollPane chatScroll;
@@ -36,7 +38,10 @@ public class MainController {
     @FXML private ImageView zoomCartaImageView;
 
     private CartaService cartaService = new CartaService();
+    private PerguntaService perguntaService = new PerguntaService();
+    private List<Pergunta> bancoDePerguntas;
     private List<Carta> todasAsCartas;
+    private List<Pergunta> perguntasJaFeitas = new ArrayList<>();
 
     private boolean[] cartaAtiva = new boolean[20];
     private Button[] cartaBotoes = new Button[20];
@@ -45,6 +50,8 @@ public class MainController {
     private Button cartaSelecionada;
     private Equipe suaEquipe;
     private Equipe equipeOponente;
+    private Turno turnoAtual;
+    private boolean esperandoRespostaDoJogador = false;
 
     private Image imagemVerso;
 
@@ -55,6 +62,7 @@ public class MainController {
         todasAsCartas = cartaService.carregarCartas();
         // Embaralha as cartas para que a ordem no grid mude a cada jogo
         //Collections.shuffle(todasAsCartas);
+        bancoDePerguntas = perguntaService.carregarPerguntas();
 
         int id = 0;
         for (int row = 0; row < 4; row++) {
@@ -141,15 +149,16 @@ public class MainController {
         Image secretImage = new Image(getClass().getResource(secretImagePath).toExternalForm());
         suaCartaImage.setImage(secretImage);
 
-        chatInput.setDisable(true);
         btnSim.setOnAction(this::onSim);
         btnNao.setOnAction(this::onNao);
-        btnEnviar.setOnAction(this::onEnviar);
         btnPerguntar.setOnAction(this::onPerguntar);
         btnPalpitar.setOnAction(this::onPalpitar);
 
         chatBox.setSpacing(8);
 
+        turnoAtual = new Random().nextBoolean() ? Turno.JOGADOR : Turno.OPONENTE;
+        atualizarInterfacePorTurno();
+        anunciarTurnoNoChat();
 //        System.out.println("A carta do oponente é: " + equipeOponente.getCartaSecreta().getNomeImagem());
     }
 
@@ -208,42 +217,66 @@ public class MainController {
     }
 
     public void onSim(ActionEvent e) {
+        if (!esperandoRespostaDoJogador) return;
         addChatMessage("Sim", true);
+        finalizarRespostaDoJogador();
     }
 
     public void onNao(ActionEvent e) {
+        if (!esperandoRespostaDoJogador) return;
         addChatMessage("Não", true);
+        finalizarRespostaDoJogador();
+    }
+
+    private void finalizarRespostaDoJogador() {
+        esperandoRespostaDoJogador = false;
+        turnoAtual = Turno.JOGADOR;
+        atualizarInterfacePorTurno();
+        anunciarTurnoNoChat();
     }
 
     public void onPerguntar(ActionEvent e) {
-        chatLiberado = true;
-        chatInput.setDisable(false);
-        chatInput.requestFocus();
-        addChatMessage("[Digite sua pergunta]", false);
-    }
-
-    public void onEnviar(ActionEvent e) {
-        if (!chatLiberado) return;
-        String pergunta = chatInput.getText();
-        if (!pergunta.isBlank()) {
-            addChatMessage(pergunta, true);
-            chatInput.clear();
-            chatInput.setDisable(true);
-            chatLiberado = false;
-        }
+        mostrarPainelDePerguntas();
     }
 
     public void onPalpitar(ActionEvent e) {
-        modoPalpite = true;
-        // Adiciona um 'feedback' visual, talvez mudando o prompt de algum texto (opcional)
-        // Por enquanto, apenas ativar o modo é suficiente.
-        System.out.println("Modo Palpite ATIVADO. Selecione uma carta.");
+        // Inverte o estado do modo palpite
+        modoPalpite = !modoPalpite;
+
+        if (modoPalpite) {
+            // --- ENTRANDO NO MODO PALPITE ---
+            // Altera a aparência do botão para indicar que está ativo
+            btnPalpitar.setText("Cancelar Palpite");
+            btnPalpitar.getStyleClass().add("active");
+
+            // Desabilita o botão de pergunta
+            btnPerguntar.setDisable(true);
+
+            // Adiciona o brilho branco em todas as cartas viradas para cima
+            for (int i = 0; i < cartaBotoes.length; i++) {
+                if (!cartaAtiva[i]) { // Se a carta não está virada
+                    cartaBotoes[i].getStyleClass().add("guess-mode-card");
+                }
+            }
+        } else {
+            // --- SAINDO DO MODO PALPITE ---
+            // Restaura a aparência do botão
+            btnPalpitar.setText("Palpitar");
+            btnPalpitar.getStyleClass().remove("active");
+
+            // Restaura a interface para o estado normal do turno do jogador
+            atualizarInterfacePorTurno();
+
+            // Remove o brilho de todas as cartas
+            for (Button cartaBtn : cartaBotoes) {
+                cartaBtn.getStyleClass().removeAll("guess-mode-card", "selecionada");
+            }
+        }
     }
 
     private void mostrarPainelConfirmacao() {
         cardGrid.setDisable(true);
         btnPalpitar.setDisable(true);
-        btnPerguntar.setDisable(true);
 
         VBox confirmacaoPane = new VBox(20);
         confirmacaoPane.setAlignment(Pos.CENTER);
@@ -253,17 +286,16 @@ public class MainController {
         Label msg = new Label("Confirmar este palpite?");
         msg.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
 
-        Image imagemPalpite = ((ImageView) cartaSelecionada.getGraphic()).getImage();
-        ImageView palpiteView = new ImageView(imagemPalpite);
+        ImageView palpiteView = new ImageView(((ImageView) cartaSelecionada.getGraphic()).getImage());
         palpiteView.setFitHeight(165);
         palpiteView.setFitWidth(110);
 
         Button confirmar = new Button("Confirmar");
-        Button cancelar = new Button("Cancelar");
+        Button voltar = new Button("Voltar");
         confirmar.getStyleClass().add("round-button");
-        cancelar.getStyleClass().add("round-button");
+        voltar.getStyleClass().add("round-button");
 
-        HBox botoes = new HBox(15, confirmar, cancelar);
+        HBox botoes = new HBox(15, confirmar, voltar);
         botoes.setAlignment(Pos.CENTER);
 
         confirmacaoPane.getChildren().addAll(msg, palpiteView, botoes);
@@ -281,14 +313,9 @@ public class MainController {
             rootPane.getChildren().remove(confirmacaoPane);
         });
 
-        cancelar.setOnAction(e -> {
-            cartaSelecionada.getStyleClass().remove("selecionada");
-            cartaSelecionada = null;
-            modoPalpite = false;
-
+        voltar.setOnAction(e -> {
             cardGrid.setDisable(false);
             btnPalpitar.setDisable(false);
-            btnPerguntar.setDisable(false);
 
             rootPane.getChildren().remove(confirmacaoPane);
         });
@@ -352,5 +379,203 @@ public class MainController {
 
         chatScroll.layout();
         chatScroll.setVvalue(1.0);
+    }
+
+    private void atualizarInterfacePorTurno() {
+        // Se estiver esperando uma resposta do jogador, o estado da UI é especial
+        if (esperandoRespostaDoJogador) {
+            cardGrid.setDisable(true); // O jogador não pode virar cartas enquanto responde
+            btnPerguntar.setDisable(true);
+            btnPalpitar.setDisable(true);
+            btnSim.setDisable(false); // Habilita os botões de resposta
+            btnNao.setDisable(false);
+            return; // Interrompe a execução aqui
+        }
+
+        // Lógica padrão de início de turno
+        boolean isTurnoDoJogador = (turnoAtual == Turno.JOGADOR);
+
+        cardGrid.setDisable(false);
+        btnPerguntar.setDisable(!isTurnoDoJogador);
+        btnPalpitar.setDisable(!isTurnoDoJogador);
+        btnSim.setDisable(true); // Desabilitados por padrão
+        btnNao.setDisable(true);
+
+        // Se for a vez do oponente, chama a ação dele
+        if (!isTurnoDoJogador) {
+            executarTurnoOponente();
+        }
+    }
+
+    private void anunciarTurnoNoChat() {
+        if (turnoAtual == Turno.JOGADOR) {
+            addSystemMessage("Sua vez de jogar!");
+        } else {
+            addSystemMessage("Vez do oponente...");
+        }
+    }
+
+    private void mostrarPainelDePerguntas() {
+        // Desabilita a interface principal
+        cardGrid.setDisable(true);
+        btnPalpitar.setDisable(true);
+        btnPerguntar.setDisable(true);
+
+        // Cria o painel
+        VBox painelPerguntas = new VBox(20);
+        painelPerguntas.setAlignment(Pos.CENTER);
+        painelPerguntas.setStyle("-fx-background-color: #31413d; -fx-padding: 40; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
+        painelPerguntas.setMaxSize(600, 500);
+
+        Label titulo = new Label("Escolha sua Pergunta");
+        titulo.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
+
+        // Cria a lista para exibir as perguntas
+        ListView<Pergunta> listaDePerguntas = new ListView<>();
+        listaDePerguntas.getItems().addAll(bancoDePerguntas);
+
+        listaDePerguntas.setCellFactory(param -> {
+            ListCell<Pergunta> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(Pergunta item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getTexto());
+                    }
+                }
+            };
+            cell.getStyleClass().add("perguntas-list-cell");
+            return cell;
+        });
+
+        Button btnConfirmar = new Button("Perguntar");
+        Button btnCancelar = new Button("Cancelar");
+        btnConfirmar.getStyleClass().add("round-button");
+        btnCancelar.getStyleClass().add("round-button");
+        btnConfirmar.setDisable(true); // Começa desabilitado
+
+        // Habilita o botão "Perguntar" apenas quando uma pergunta é selecionada
+        listaDePerguntas.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            btnConfirmar.setDisable(newSelection == null);
+        });
+
+        HBox botoes = new HBox(15, btnConfirmar, btnCancelar);
+        botoes.setAlignment(Pos.CENTER);
+
+        painelPerguntas.getChildren().addAll(titulo, listaDePerguntas, botoes);
+        rootPane.getChildren().add(painelPerguntas);
+
+        // Ações dos botões
+        btnCancelar.setOnAction(e -> {
+            rootPane.getChildren().remove(painelPerguntas);
+            atualizarInterfacePorTurno();
+        });
+
+        btnConfirmar.setOnAction(e -> {
+            Pergunta perguntaSelecionada = listaDePerguntas.getSelectionModel().getSelectedItem();
+            if (perguntaSelecionada != null) {
+                addChatMessage(perguntaSelecionada.getTexto(), true);
+                rootPane.getChildren().remove(painelPerguntas);
+
+                processarRespostaDoOponente(perguntaSelecionada);
+            }
+        });
+    }
+
+    private void processarRespostaDoOponente(Pergunta perguntaFeita) {
+        // Trava a interface enquanto o oponente "pensa" na resposta
+        cardGrid.setDisable(false);
+        btnPerguntar.setDisable(true);
+        btnPalpitar.setDisable(true);
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+        delay.setOnFinished(event -> {
+            // O oponente responde à pergunta com base na CARTA DELE
+            boolean resposta = perguntaFeita.testar(equipeOponente.getCartaSecreta());
+
+            if (resposta) {
+                addChatMessage("Sim", false);
+            } else {
+                addChatMessage("Não", false);
+            }
+
+            turnoAtual = Turno.OPONENTE;
+            atualizarInterfacePorTurno();
+            anunciarTurnoNoChat();
+        });
+        delay.play();
+    }
+
+//    private void processarTurnoOponente(Pergunta perguntaFeita) {
+//        turnoAtual = Turno.OPONENTE;
+//        atualizarInterfacePorTurno();
+//        anunciarTurnoNoChat();
+//
+//        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+//        delay.setOnFinished(event -> {
+//            // Lógica da resposta do oponente
+//            // O oponente responde com base na SUA carta secreta
+//            boolean resposta = perguntaFeita.testar(equipeOponente.getCartaSecreta());
+//
+//            if (resposta) {
+//                addChatMessage("Sim", false); // 'false' para balão de mensagem recebida
+//            } else {
+//                addChatMessage("Não", false);
+//            }
+//
+//            // Devolve o turno para o jogador
+//            turnoAtual = Turno.JOGADOR;
+//            atualizarInterfacePorTurno();
+//            anunciarTurnoNoChat();
+//        });
+//        delay.play();
+//    }
+
+    private void addSystemMessage(String message) {
+        HBox container = new HBox();
+        container.setAlignment(Pos.CENTER);
+
+        Label label = new Label(message);
+        label.getStyleClass().add("chat-msg-system");
+
+        container.getChildren().add(label);
+        chatBox.getChildren().add(container);
+
+        chatScroll.layout();
+        chatScroll.setVvalue(1.0);
+    }
+
+    private void processarTurnoOponente(Object o) {
+
+    }
+
+    private void executarTurnoOponente() {
+        // Adiciona um delay para simular o oponente pensando
+        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+        delay.setOnFinished(event -> {
+            // Lógica para escolher uma pergunta
+            List<Pergunta> perguntasDisponiveis = new ArrayList<>(bancoDePerguntas);
+            perguntasDisponiveis.removeAll(perguntasJaFeitas);
+
+            if (perguntasDisponiveis.isEmpty()) {
+                // Se não houver mais perguntas, o oponente passa a vez (ou poderia palpitar)
+                turnoAtual = Turno.JOGADOR;
+                atualizarInterfacePorTurno();
+                anunciarTurnoNoChat();
+                return;
+            }
+
+            Pergunta perguntaEscolhida = perguntasDisponiveis.get(new Random().nextInt(perguntasDisponiveis.size()));
+            perguntasJaFeitas.add(perguntaEscolhida);
+
+            addChatMessage(perguntaEscolhida.getTexto(), false); // Oponente faz a pergunta
+
+            // Prepara a interface para o jogador responder
+            esperandoRespostaDoJogador = true;
+            atualizarInterfacePorTurno();
+        });
+        delay.play();
     }
 }
