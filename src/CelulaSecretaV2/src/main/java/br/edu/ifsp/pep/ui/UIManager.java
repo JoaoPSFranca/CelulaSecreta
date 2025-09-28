@@ -15,6 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
+import javafx.application.Platform;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -46,6 +47,10 @@ public class UIManager {
         this.zoomContainer = zoomContainer;
         this.zoomCartaImageView = zoomCartaImageView;
         this.imagemVerso = new Image(getClass().getResource("/images/verso.png").toExternalForm());
+
+        this.chatBox.heightProperty().addListener((obs, oldHeight, newHeight) -> {
+            this.chatScroll.setVvalue(1.0);
+        });
     }
 
     public void exibirCartaSecreta(Carta carta) {
@@ -276,7 +281,6 @@ public class UIManager {
         }
         container.getChildren().add(label);
         chatBox.getChildren().add(container);
-        chatScroll.setVvalue(1.0);
     }
 
     public void addSystemMessage(String message) {
@@ -286,7 +290,6 @@ public class UIManager {
         label.getStyleClass().add("chat-msg-system");
         container.getChildren().add(label);
         chatBox.getChildren().add(container);
-        chatScroll.setVvalue(1.0);
     }
 
     public void atualizarModoPalpite(boolean modoPalpite, Button[] cartaBotoes, boolean[] cartaAtiva) {
