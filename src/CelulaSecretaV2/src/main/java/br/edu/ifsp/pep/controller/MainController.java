@@ -1,8 +1,8 @@
 package br.edu.ifsp.pep.controller;
 
 import br.edu.ifsp.pep.logic.GameManager;
-import br.edu.ifsp.pep.logic.Opponent;
 import br.edu.ifsp.pep.logic.OpponentAI;
+import br.edu.ifsp.pep.logic.Opponent;
 import br.edu.ifsp.pep.model.Carta;
 import br.edu.ifsp.pep.model.Pergunta;
 import br.edu.ifsp.pep.model.Turno;
@@ -40,6 +40,9 @@ public class MainController {
     private final boolean[] cartaAtiva = new boolean[20];
     private Button cartaSelecionada;
 
+    // --- Outras variáveis ---
+    private Pergunta perguntaAtualDoOponente;
+
     @FXML
     public void initialize() {
         Opponent oponenteDoJogo = new OpponentAI();
@@ -49,13 +52,16 @@ public class MainController {
 
         setupInitialBoard();
         uiManager.exibirCartaSecreta(gameManager.getSuaEquipe().getCartaSecreta());
-        uiManager.addSystemMessage("Bem-vindo ao Célula Secreta!");
-        anunciarTurnoNoChat();
 
         btnSim.setOnAction(this::onSim);
         btnNao.setOnAction(this::onNao);
         btnPerguntar.setOnAction(this::onPerguntar);
         btnPalpitar.setOnAction(this::onPalpitar);
+
+        if (gameManager.getTurnoAtual() == Turno.OPONENTE)
+            executarTurnoOponente();
+        else
+            anunciarTurnoNoChat();
     }
 
     private void setupInitialBoard() {
@@ -109,14 +115,18 @@ public class MainController {
     public void onSim(ActionEvent e) {
         if (!gameManager.isEsperandoRespostaDoJogador()) return;
         uiManager.addChatMessage("Sim", true);
-        gameManager.finalizarRespostaDoJogador();
+
+        // Informa ao GameManager a resposta para a pergunta que o oponente fez
+        gameManager.processarRespostaDoJogador(perguntaAtualDoOponente, true);
         atualizarInterfaceEAnunciarTurno();
     }
 
     public void onNao(ActionEvent e) {
         if (!gameManager.isEsperandoRespostaDoJogador()) return;
         uiManager.addChatMessage("Não", true);
-        gameManager.finalizarRespostaDoJogador();
+
+        // Informa ao GameManager a resposta para a pergunta que o oponente fez
+        gameManager.processarRespostaDoJogador(perguntaAtualDoOponente, false);
         atualizarInterfaceEAnunciarTurno();
     }
 
@@ -152,14 +162,42 @@ public class MainController {
     private void executarTurnoOponente() {
         anunciarTurnoNoChat();
 
+        // Desabilita a interface enquanto o oponente "pensa"
+        uiManager.atualizarInterfacePorTurno(gameManager.getTurnoAtual(), false);
+
         PauseTransition delay = new PauseTransition(Duration.seconds(2));
         delay.setOnFinished(event -> {
-            Pergunta pergunta = gameManager.executarTurnoOponente();
-            if (pergunta != null) {
-                uiManager.addChatMessage(pergunta.getTexto(), false);
+            if(gameManager.isJogoFinalizado()) return;
+
+            GameManager.ResultadoTurnoOponente resultado = gameManager.executarTurnoOponente();
+
+            // Se o oponente fez uma pergunta
+            if (resultado.pergunta() != null) {
+                this.perguntaAtualDoOponente = resultado.pergunta();
+                uiManager.addChatMessage(resultado.pergunta().getTexto(), false);
+                // Prepara a UI para a resposta do jogador
+                uiManager.atualizarInterfacePorTurno(gameManager.getTurnoAtual(), gameManager.isEsperandoRespostaDoJogador());
             }
-            // A UI é atualizada para esperar a resposta do jogador
-            uiManager.atualizarInterfacePorTurno(gameManager.getTurnoAtual(), gameManager.isEsperandoRespostaDoJogador());
+            // Se o oponente fez um palpite
+            else if (resultado.palpite() != null) {
+                GameManager.PalpiteOponente palpite = resultado.palpite();
+                String msg = "Meu palpite é... " + palpite.carta().getNome() + "!";
+                uiManager.addChatMessage(msg, false);
+
+                // Adiciona um pequeno delay para o jogador ler o palpite antes do fim de jogo
+                PauseTransition fimDeJogoDelay = new PauseTransition(Duration.seconds(2));
+                fimDeJogoDelay.setOnFinished(e -> {
+                    // O resultado é invertido: se o oponente acertou (true), o jogador perdeu (vitoria = false).
+                    boolean jogadorVenceu = !palpite.acertou();
+                    uiManager.exibirFimDeJogo(jogadorVenceu, gameManager.getEquipeOponente(), () -> System.exit(0));
+                });
+                fimDeJogoDelay.play();
+            }
+            // Se o oponente não fez nada (passou a vez)
+            else {
+                gameManager.finalizarRespostaDoJogador(); // Simula uma "passagem de turno"
+                atualizarInterfaceEAnunciarTurno();
+            }
         });
         delay.play();
     }

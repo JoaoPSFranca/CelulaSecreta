@@ -15,7 +15,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
-import org.w3c.dom.ls.LSOutput;
 
 import java.util.List;
 import java.util.function.Consumer;

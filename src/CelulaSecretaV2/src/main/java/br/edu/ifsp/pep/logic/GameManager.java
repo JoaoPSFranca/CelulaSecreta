@@ -20,6 +20,7 @@ public class GameManager {
     private Turno turnoAtual;
     private boolean esperandoRespostaDoJogador = false;
     private boolean modoPalpite = false;
+    private boolean jogoFinalizado = false;
     private final List<Carta> todasAsCartas;
     private final List<Pergunta> bancoDePerguntas;
     private List<Pergunta> perguntasJaFeitas = new ArrayList<>();
@@ -50,6 +51,9 @@ public class GameManager {
         suaEquipe.setCartaSecreta(baralhoParaSorteio.removeFirst());
         equipeOponente.setCartaSecreta(baralhoParaSorteio.removeFirst());
 
+        // Informa à IA para reiniciar seu estado
+        opponent.iniciarNovaPartida(todasAsCartas);
+
         // Sorteia quem começa
         turnoAtual = new Random().nextBoolean() ? Turno.JOGADOR : Turno.OPONENTE;
 
@@ -65,6 +69,7 @@ public class GameManager {
     public List<Pergunta> getBancoDePerguntas() { return bancoDePerguntas; }
     public Equipe getSuaEquipe() { return suaEquipe; }
     public Equipe getEquipeOponente() { return equipeOponente; }
+    public boolean isJogoFinalizado() { return jogoFinalizado; }
 
     // --- Ações do Jogo (chamadas pelo Controller) ---
 
@@ -87,22 +92,44 @@ public class GameManager {
         return new RespostaOponente(resposta);
     }
 
-    public Pergunta executarTurnoOponente() {
+    // Ação chamada pelo Controller quando o jogador responde à IA
+    public void processarRespostaDoJogador(Pergunta perguntaFeitaPeloOponente, boolean resposta) {
+        opponent.processarRespostaDoJogador(perguntaFeitaPeloOponente, resposta);
+        this.esperandoRespostaDoJogador = false;
+        this.turnoAtual = Turno.JOGADOR; // Volta o turno para o jogador
+    }
+
+    public ResultadoTurnoOponente executarTurnoOponente() {
         List<Pergunta> perguntasDisponiveis = new ArrayList<>(bancoDePerguntas);
         perguntasDisponiveis.removeAll(perguntasJaFeitas);
 
-        Pergunta perguntaEscolhida = opponent.escolherPergunta(perguntasDisponiveis);
+        AcaoOponente acao = opponent.decidirAcao(perguntasDisponiveis, new ArrayList<>());
 
-        if (perguntaEscolhida != null) {
-            perguntasJaFeitas.add(perguntaEscolhida);
-            this.esperandoRespostaDoJogador = true;
-        } else {
-            this.turnoAtual = Turno.JOGADOR;
+        if (acao == null) {
+            return new ResultadoTurnoOponente(null, null); // Nenhuma ação
         }
 
-        return perguntaEscolhida;
+        if (acao.isPergunta()) {
+            Pergunta perguntaEscolhida = acao.getPergunta();
+            perguntasJaFeitas.add(perguntaEscolhida);
+            this.esperandoRespostaDoJogador = true;
+            return new ResultadoTurnoOponente(perguntaEscolhida, null);
+        }
+
+        if (acao.isPalpite()) {
+            Carta palpite = acao.getPalpite();
+            boolean acertou = palpite.getId() == suaEquipe.getCartaSecreta().getId();
+            this.jogoFinalizado = true; // O jogo acaba aqui!
+            return new ResultadoTurnoOponente(null, new PalpiteOponente(palpite, acertou));
+        }
+
+        return new ResultadoTurnoOponente(null, null);
     }
 
     // Classe auxiliar para encapsular a resposta
     public record RespostaOponente(boolean resposta) {}
+
+    // Classe interna para encapsular o resultado do turno do oponente
+    public record ResultadoTurnoOponente(Pergunta pergunta, PalpiteOponente palpite) {}
+    public record PalpiteOponente(Carta carta, boolean acertou) {}
 }
