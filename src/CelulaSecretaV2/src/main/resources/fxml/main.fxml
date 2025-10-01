@@ -74,4 +74,11 @@
             <ImageView fx:id="zoomCartaImageView" fitWidth="220" fitHeight="330" preserveRatio="true"/>
         </children>
     </VBox>
+
+    <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="20" style="-fx-background-color: rgba(40, 40, 40, 0.85);" visible="false">
+        <children>
+            <ProgressIndicator />
+            <Label fx:id="loadingLabel" style="-fx-text-fill: white; -fx-font-size: 18px;" text="Estabelecendo conexão..." />
+        </children>
+    </VBox>
 </StackPane>

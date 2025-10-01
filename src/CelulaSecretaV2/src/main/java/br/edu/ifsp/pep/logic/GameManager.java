@@ -21,6 +21,7 @@ public class GameManager {
     private boolean esperandoRespostaDoJogador = false;
     private boolean modoPalpite = false;
     private boolean jogoFinalizado = false;
+    private boolean isMyTurn = false;
     private final List<Carta> todasAsCartas;
     private final List<Pergunta> bancoDePerguntas;
     private List<Pergunta> perguntasJaFeitas = new ArrayList<>();
@@ -51,10 +52,12 @@ public class GameManager {
         suaEquipe.setCartaSecreta(baralhoParaSorteio.removeFirst());
         equipeOponente.setCartaSecreta(baralhoParaSorteio.removeFirst());
 
-        // Informa à IA para reiniciar seu estado
-        opponent.iniciarNovaPartida(todasAsCartas);
+        // Só tenta iniciar o oponente se ele não for nulo (ou seja, se for o modo vs. IA).
+        if (this.opponent != null) {
+            opponent.iniciarNovaPartida(todasAsCartas);
+        }
 
-        // Sorteia quem começa
+        // Sorteia quem começa (isso precisa ser adaptado para a rede depois)
         turnoAtual = new Random().nextBoolean() ? Turno.JOGADOR : Turno.OPONENTE;
 
 //        System.out.println("Sua carta: " + suaEquipe.getCartaSecreta().getNome());
@@ -70,6 +73,8 @@ public class GameManager {
     public Equipe getSuaEquipe() { return suaEquipe; }
     public Equipe getEquipeOponente() { return equipeOponente; }
     public boolean isJogoFinalizado() { return jogoFinalizado; }
+    public boolean isMyTurn() { return isMyTurn; }
+    public void setMyTurn(boolean myTurn) { isMyTurn = myTurn; }
 
     // --- Ações do Jogo (chamadas pelo Controller) ---
 
@@ -82,8 +87,11 @@ public class GameManager {
         this.turnoAtual = Turno.JOGADOR;
     }
 
-    public boolean verificarPalpite(Carta cartaDoPalpite) {
-        return cartaDoPalpite.getId() == equipeOponente.getCartaSecreta().getId();
+    public boolean verificarPalpite(Carta cartaDoPalpite, boolean isMyGuess) {
+        if (isMyGuess)
+            return cartaDoPalpite.getId() == equipeOponente.getCartaSecreta().getId();
+        else
+            return cartaDoPalpite.getId() == suaEquipe.getCartaSecreta().getId();
     }
 
     public RespostaOponente processarRespostaDoOponente(Pergunta perguntaFeita) {

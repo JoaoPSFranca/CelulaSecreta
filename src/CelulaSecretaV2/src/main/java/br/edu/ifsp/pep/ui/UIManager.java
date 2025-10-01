@@ -15,7 +15,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
-import javafx.application.Platform;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -58,22 +57,28 @@ public class UIManager {
         suaCartaImage.setImage(new Image(getClass().getResource(path).toExternalForm()));
     }
 
-    public void atualizarInterfacePorTurno(Turno turnoAtual, boolean esperandoResposta) {
-        if (esperandoResposta) {
-            cardGrid.setDisable(true);
+    public void updateUIForTurnState(boolean isMyTurn, boolean isAwaitingPlayerResponse) {
+        if (!isMyTurn) {
+            cardGrid.setDisable(false);
             btnPerguntar.setDisable(true);
             btnPalpitar.setDisable(true);
-            btnSim.setDisable(false);
-            btnNao.setDisable(false);
-            return;
+            btnSim.setDisable(true);
+            btnNao.setDisable(true);
+        } else {
+            if (isAwaitingPlayerResponse) { // Vez de Reponder Sim ou Não
+                cardGrid.setDisable(true);
+                btnPerguntar.setDisable(true);
+                btnPalpitar.setDisable(true);
+                btnSim.setDisable(false); // Habilita Sim
+                btnNao.setDisable(false); // Habilita Não
+            } else { // Vez de Palpitar / Perguntar
+                cardGrid.setDisable(false);
+                btnPerguntar.setDisable(false); // Habilita Perguntar
+                btnPalpitar.setDisable(false); // Habilita Palpitar
+                btnSim.setDisable(true);
+                btnNao.setDisable(true);
+            }
         }
-
-        boolean isTurnoDoJogador = (turnoAtual == Turno.JOGADOR);
-        cardGrid.setDisable(false);
-        btnPerguntar.setDisable(!isTurnoDoJogador);
-        btnPalpitar.setDisable(!isTurnoDoJogador);
-        btnSim.setDisable(true);
-        btnNao.setDisable(true);
     }
 
     public void animarCarta(Button carta, boolean paraVerso, Carta cartaInfo) {
@@ -150,7 +155,7 @@ public class UIManager {
 
         btnCancelar.setOnAction(e -> {
             rootPane.getChildren().remove(painelPerguntas);
-            atualizarInterfacePorTurno(Turno.JOGADOR, false);
+            updateUIForTurnState(true, false);
         });
 
         btnConfirmar.setOnAction(e -> {
@@ -308,7 +313,7 @@ public class UIManager {
             btnPalpitar.setText("Palpitar");
             btnPalpitar.getStyleClass().remove("active");
 
-            atualizarInterfacePorTurno(Turno.JOGADOR, false);
+            updateUIForTurnState(true, false);
 
             for (Button cartaBtn : cartaBotoes) {
                 cartaBtn.getStyleClass().removeAll("guess-mode-card", "selecionada");

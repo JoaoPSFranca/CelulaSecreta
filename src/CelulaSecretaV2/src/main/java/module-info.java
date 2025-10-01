@@ -1,4 +1,4 @@
-module br.edu.ifsp.pep.principal.teste2 {
+module br.edu.ifsp.pep {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.xml;

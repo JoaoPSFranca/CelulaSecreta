@@ -8,11 +8,7 @@ public class Equipe {
         this.nome = nome;
     }
 
-    public void setCartaSecreta(Carta carta) {
-        this.cartaSecreta = carta;
-    }
-
-    public Carta getCartaSecreta() {
-        return cartaSecreta;
-    }
+    // Getters e Setters
+    public void setCartaSecreta(Carta carta) { this.cartaSecreta = carta; }
+    public Carta getCartaSecreta() { return cartaSecreta; }
 }

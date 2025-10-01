@@ -1,8 +1,9 @@
 package br.edu.ifsp.pep.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Carta {
+public class Carta implements Serializable {
     private int id;
     private String nome;
     private String nomeImagem;
@@ -27,6 +28,7 @@ public class Carta {
         this.organelas = organelas;
     }
 
+    // Getters e Setters
     public String getNomeImagem() { return nomeImagem; }
     public void setNomeImagem(String nomeImagem) { this.nomeImagem = nomeImagem; }
     public int getId() { return id; }
