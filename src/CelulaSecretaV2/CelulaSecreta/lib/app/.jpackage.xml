@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<jpackage-state version="24.0.1" platform="linux">
+  <app-version>1.0.0</app-version>
+  <main-launcher>CelulaSecreta</main-launcher>
+  <main-class>br.edu.ifsp.pep.App</main-class>
+  <signed>false</signed>
+  <app-store>false</app-store></jpackage-state>

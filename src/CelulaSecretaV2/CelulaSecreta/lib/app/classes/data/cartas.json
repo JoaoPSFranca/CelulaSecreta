@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "nome": "Célula Animal",
+    "descricao": "Célula eucarionte com núcleo definido.",
+    "celula": true,
+    "nivelDificuldade": 1,
+    "reino": {
+      "id": 1,
+      "nome": "Animalia",
+      "descricao": "Organismos multicelulares heterotróficos."
+    },
+    "propriedades": ["Possui mitocôndrias", "Não possui parede celular"],
+    "funcoes": ["Respiração celular", "Locomoção"],
+    "organelas": ["Núcleo", "Mitocôndria", "Lisossomo"]
+  }
+]
