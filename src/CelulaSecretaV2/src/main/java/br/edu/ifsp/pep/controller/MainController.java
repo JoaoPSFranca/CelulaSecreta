@@ -276,6 +276,7 @@ public class MainController {
                             try {
                                 networkManager.send(palpite);
                                 uiManager.addSystemMessage("Palpite enviado! Aguardando resultado...");
+                                uiManager.addSystemMessage("Você palpitou: " + palpite.getNome());
                             } catch (Exception ex) {
                                 showAlert("Erro de Rede", "Não foi possível enviar o palpite.");
                                 ex.printStackTrace();

@@ -30,7 +30,7 @@ public class NetworkManager {
         initializeStreams();
     }
 
-    // Método para o Cliente: conecta a um servidor existente
+    // Metodo para o Cliente: conecta a um servidor existente
     public void joinGame(String ipAddress) throws Exception {
         System.out.println("Modo Cliente: Conectando ao host " + ipAddress + "...");
         this.socket = new Socket(ipAddress, PORT);
@@ -44,7 +44,6 @@ public class NetworkManager {
         this.in = new ObjectInputStream(socket.getInputStream());
     }
 
-    // Futuramente: métodos para enviar e receber objetos
     public void send(Object object) throws Exception {
         if (out != null) {
             out.writeObject(object);
