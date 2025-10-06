@@ -103,11 +103,11 @@ public class MainController {
                         updateMessage("Conectando ao host: " + setup.ipAddress());
                         networkManager.joinGame(setup.ipAddress());
                     }
-                    return true; // Sucesso
+                    return Boolean.TRUE; // Sucesso
                 } catch (Exception e) {
                     updateMessage("Falha na conexão: " + e.getMessage());
                     e.printStackTrace();
-                    return false; // Falha
+                    return Boolean.FALSE; // Falha
                 }
             }
         };
@@ -300,7 +300,7 @@ public class MainController {
             // Lógica para Multiplayer (Rede)
             uiManager.addChatMessage("Sim", true);
             try {
-                networkManager.send(true);
+                networkManager.send(Boolean.TRUE);
                 uiManager.addSystemMessage("Sua vez");
                 gameManager.setMyTurn(true); // Continuar jogando
                 uiManager.updateUIForTurnState(true, false);
@@ -322,7 +322,7 @@ public class MainController {
             // Lógica para Multiplayer (Rede)
             uiManager.addChatMessage("Não", true);
             try {
-                networkManager.send(false);
+                networkManager.send(Boolean.FALSE);
                 uiManager.addSystemMessage("Sua vez");
                 gameManager.setMyTurn(true); // Continua jogando
                 uiManager.updateUIForTurnState(true, false);
@@ -390,7 +390,8 @@ public class MainController {
                 this.perguntaAtualDoOponente = resultado.pergunta();
                 uiManager.addChatMessage(resultado.pergunta().getTexto(), false);
                 // Prepara a UI para a resposta do jogador
-                uiManager.updateUIForTurnState(gameManager.isMyTurn(), gameManager.isEsperandoRespostaDoJogador());
+                gameManager.setMyTurn(true);
+                uiManager.updateUIForTurnState(gameManager.isMyTurn(), true);
             }
             // Se o oponente fez um palpite
             else if (resultado.palpite() != null) {

@@ -1,2 +1,0 @@
-JAVA_VERSION="24.0.1"
-MODULES="java.base java.xml java.datatransfer java.prefs java.desktop javafx.base jdk.unsupported javafx.graphics javafx.controls java.scripting javafx.fxml br.edu.ifsp.pep"

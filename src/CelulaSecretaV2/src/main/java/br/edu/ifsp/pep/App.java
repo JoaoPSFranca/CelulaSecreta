@@ -1,10 +1,7 @@
 package br.edu.ifsp.pep;
 
 import br.edu.ifsp.pep.controller.MainController;
-import br.edu.ifsp.pep.network.ConnectionResult;
-import br.edu.ifsp.pep.network.ConnectionType;
-import br.edu.ifsp.pep.network.GameMode;
-import br.edu.ifsp.pep.network.GameSetup;
+import br.edu.ifsp.pep.network.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -13,9 +10,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Optional;
 
 public class App extends Application {
@@ -81,18 +75,18 @@ public class App extends Application {
             }
             if (dialogButton == hostButton) {
                 try {
-                    // Pega o IP local para mostrar ao jogador que está hosteando
-                    String localIp = InetAddress.getLocalHost().getHostAddress();
+                    String localIp = NetworkUtils.detectLocalIPv4();
 
                     Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
                     infoAlert.setTitle("Você é o Host!");
                     infoAlert.setHeaderText("Aguardando a conexão do outro jogador...");
                     infoAlert.setContentText("Por favor, compartilhe este endereço IP com ele: " + localIp);
-                    infoAlert.showAndWait(); // O programa espera aqui até o usuario clicar em OK.
+                    infoAlert.showAndWait();
 
                     return new GameSetup(GameMode.MULTIPLAYER_HOST, localIp);
-                } catch (UnknownHostException e) {
-                    return new GameSetup(GameMode.MULTIPLAYER_HOST, "192.168.0.173");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return new GameSetup(GameMode.MULTIPLAYER_HOST, "127.0.0.1");
                 }
             }
             if (dialogButton == joinButton) {
