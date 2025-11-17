@@ -81,4 +81,34 @@
             <Label fx:id="loadingLabel" style="-fx-text-fill: white; -fx-font-size: 18px;" text="Estabelecendo conexão..." />
         </children>
     </VBox>
+
+    <VBox fx:id="painelDesafio" alignment="TOP_CENTER" spacing="30" style="-fx-background-color: #394a46;"
+          prefWidth="1000" prefHeight="700"
+          visible="false" managed="false"> <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+
+        <Label text="Desafio de Velocidade!" style="-fx-font-size: 32px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;"/>
+
+        <Label fx:id="labelTimer" text="Tempo: 00:00" style="-fx-font-size: 24px; -fx-text-fill: #e0e5e4;"/>
+
+        <VBox alignment="CENTER" style="-fx-background-color: #31413d; -fx-padding: 30; -fx-border-color: #a0d4c8; -fx-border-width: 2; -fx-border-radius: 15; -fx-background-radius: 15;"
+              minHeight="150">
+            <Label fx:id="labelPerguntaDesafio" text="Aqui vai a pergunta sobre a função da organela..."
+                   style="-fx-font-size: 20px; -fx-text-fill: #e0e5e4;"
+                   wrapText="true" textAlignment="CENTER"/>
+        </VBox>
+
+        <GridPane fx:id="gridOpcoesDesafio" hgap="25" vgap="25" alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" prefWidth="400"/>
+                <ColumnConstraints halignment="CENTER" prefWidth="400"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints valignment="CENTER" prefHeight="100"/>
+                <RowConstraints valignment="CENTER" prefHeight="100"/>
+            </rowConstraints>
+
+        </GridPane>
+    </VBox>
 </StackPane>

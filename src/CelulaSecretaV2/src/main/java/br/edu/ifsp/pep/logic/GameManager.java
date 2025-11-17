@@ -61,7 +61,7 @@ public class GameManager {
         turnoAtual = new Random().nextBoolean() ? Turno.JOGADOR : Turno.OPONENTE;
 
 //        System.out.println("Sua carta: " + suaEquipe.getCartaSecreta().getNome());
-//        System.out.println("Carta do Oponente: " + equipeOponente.getCartaSecreta().getNome());
+        System.out.println("Carta do Oponente: " + equipeOponente.getCartaSecreta().getNome());
     }
 
     // --- Getters de Estado (para o Controller ler) ---

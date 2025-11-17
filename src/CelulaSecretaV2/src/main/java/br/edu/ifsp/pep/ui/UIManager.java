@@ -1,9 +1,6 @@
 package br.edu.ifsp.pep.ui;
 
-import br.edu.ifsp.pep.model.Carta;
-import br.edu.ifsp.pep.model.Equipe;
-import br.edu.ifsp.pep.model.Pergunta;
-import br.edu.ifsp.pep.model.Turno;
+import br.edu.ifsp.pep.model.*;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.geometry.Bounds;
@@ -31,9 +28,14 @@ public class UIManager {
     private final ImageView zoomCartaImageView;
     private final Image imagemVerso;
 
+    private final VBox painelDesafio;
+    private final Label labelTimer;
+    private final Label labelPerguntaDesafio;
+    private final GridPane gridOpcoesDesafio;
+
     public UIManager(StackPane rootPane, GridPane cardGrid, VBox chatBox, ScrollPane chatScroll,
                      ImageView suaCartaImage, Button btnPerguntar, Button btnPalpitar,
-                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView) {
+                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView, VBox painelDesafio, Label labelTimer, Label labelPerguntaDesafio, GridPane gridOpcoesDesafio) {
         this.rootPane = rootPane;
         this.cardGrid = cardGrid;
         this.chatBox = chatBox;
@@ -45,6 +47,10 @@ public class UIManager {
         this.btnNao = btnNao;
         this.zoomContainer = zoomContainer;
         this.zoomCartaImageView = zoomCartaImageView;
+        this.painelDesafio = painelDesafio;
+        this.labelTimer = labelTimer;
+        this.labelPerguntaDesafio = labelPerguntaDesafio;
+        this.gridOpcoesDesafio = gridOpcoesDesafio;
         this.imagemVerso = new Image(getClass().getResource("/images/verso.png").toExternalForm());
 
         this.chatBox.heightProperty().addListener((obs, oldHeight, newHeight) -> {
@@ -207,23 +213,22 @@ public class UIManager {
         });
     }
 
-    public void exibirFimDeJogo(boolean vitoria, Equipe oponente, Runnable onFecharAction) {
+    public void exibirFimDeJogo(boolean vitoria, Equipe oponente, Runnable onChallengeAction, Runnable onExitAction) {
         cardGrid.setDisable(true);
         btnPalpitar.setDisable(true);
         btnPerguntar.setDisable(true);
 
         VBox fimDeJogoPane = new VBox(20);
-        // ... (código de criação e estilo do painel, como antes)
         fimDeJogoPane.setAlignment(Pos.CENTER);
         fimDeJogoPane.setStyle("-fx-background-color: #31413d; -fx-padding: 50; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
-        fimDeJogoPane.setMaxSize(400, 300);
+        fimDeJogoPane.setMaxSize(450, 450); // Aumentei um pouco a altura para os novos botões
 
         Label titulo = new Label(vitoria ? "Você Venceu!" : "Você Perdeu!");
         titulo.setStyle("-fx-font-size: 32px; -fx-text-fill: " + (vitoria ? "#a0d4c8" : "#ff8a80") + "; -fx-font-weight: bold;");
 
         fimDeJogoPane.getChildren().add(titulo);
 
-        if (!vitoria) {
+        if (!vitoria && oponente != null && oponente.getCartaSecreta() != null) {
             Label info = new Label("A carta secreta era:");
             info.setStyle("-fx-font-size: 16px; -fx-text-fill: #e0e5e4;");
 
@@ -235,11 +240,19 @@ public class UIManager {
             fimDeJogoPane.getChildren().addAll(info, cartaCorretaView);
         }
 
-        Button fechar = new Button("Fechar Jogo");
-        fechar.getStyleClass().add("round-button");
-        fechar.setOnAction(e -> onFecharAction.run());
+        Button btnJogarDesafio = new Button("Jogar Desafio (Fase 2)");
+        btnJogarDesafio.getStyleClass().add("round-button");
+        btnJogarDesafio.setOnAction(e -> {
+            rootPane.getChildren().remove(fimDeJogoPane); // Fecha o painel
+            onChallengeAction.run(); // Executa a ação do desafio
+        });
 
-        fimDeJogoPane.getChildren().add(fechar);
+        Button btnSair = new Button("Sair do Jogo");
+        btnSair.getStyleClass().add("round-button");
+        btnSair.setOnAction(e -> onExitAction.run()); // Executa a ação de sair
+
+        VBox.setMargin(btnJogarDesafio, new javafx.geometry.Insets(20, 0, 0, 0)); // Adiciona espaço
+        fimDeJogoPane.getChildren().addAll(btnJogarDesafio, btnSair);
         rootPane.getChildren().add(fimDeJogoPane);
     }
 
@@ -319,5 +332,76 @@ public class UIManager {
                 cartaBtn.getStyleClass().removeAll("guess-mode-card", "selecionada");
             }
         }
+    }
+
+    public void transicionarParaDesafio() {
+        // Esconde a Fase 1
+        cardGrid.setVisible(false);
+        cardGrid.setManaged(false);
+        chatBox.getParent().setVisible(false); // Esconde o VBox pai do chat
+        chatBox.getParent().setManaged(false);
+        suaCartaImage.getParent().getParent().setVisible(false); // Esconde o VBox pai dos botões da direita
+        suaCartaImage.getParent().getParent().setManaged(false);
+
+        // Mostra a Fase 2
+        painelDesafio.setVisible(true);
+        painelDesafio.setManaged(true);
+    }
+
+    public void exibirPerguntaDesafio(ChallengeItem item, Consumer<String> onOpcaoSelecionada) {
+        labelPerguntaDesafio.setText(item.pergunta());
+        gridOpcoesDesafio.getChildren().clear(); // Limpa opções anteriores
+
+        if (item.opcoes() == null || item.opcoes().size() != 4) {
+            labelPerguntaDesafio.setText("Erro: O item do desafio está mal formatado.");
+            return;
+        }
+
+        int index = 0;
+        for (int row = 0; row < 2; row++) {
+            for (int col = 0; col < 2; col++) {
+                String opcaoTexto = item.opcoes().get(index++);
+                Button opcaoBtn = new Button(opcaoTexto);
+                opcaoBtn.getStyleClass().add("challenge-option-button"); // (Podemos estilizar isso no CSS depois)
+                opcaoBtn.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+                // Define a ação do botão para chamar o callback
+                opcaoBtn.setOnAction(e -> onOpcaoSelecionada.accept(opcaoTexto));
+
+                gridOpcoesDesafio.add(opcaoBtn, col, row);
+            }
+        }
+    }
+
+    public void atualizarTimer(String segundosFormatados) {
+        labelTimer.setText("Tempo: " + segundosFormatados);
+    }
+
+    public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal, Runnable onFechar) {
+        // Desabilita o painel de perguntas
+        painelDesafio.setDisable(true);
+
+        VBox fimDesafioPane = new VBox(20);
+        fimDesafioPane.setAlignment(Pos.CENTER);
+        fimDesafioPane.setStyle("-fx-background-color: #31413d; -fx-padding: 50; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
+        fimDesafioPane.setMaxSize(500, 400);
+
+        Label titulo = new Label("Desafio Concluído!");
+        titulo.setStyle("-fx-font-size: 32px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;");
+
+        Label placarLabel = new Label("Seu placar: " + acertos + " / " + totalPerguntas);
+        placarLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
+
+        Label tempoLabel = new Label("Tempo final: " + tempoFinal);
+        tempoLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
+
+        Button fecharBtn = new Button("Fechar Jogo");
+        fecharBtn.getStyleClass().add("round-button");
+        fecharBtn.setOnAction(e -> onFechar.run());
+
+        fimDesafioPane.getChildren().addAll(titulo, placarLabel, tempoLabel, fecharBtn);
+
+        // Adiciona o painel de fim de desafio sobre o painel de desafio
+        rootPane.getChildren().add(fimDesafioPane);
     }
 }

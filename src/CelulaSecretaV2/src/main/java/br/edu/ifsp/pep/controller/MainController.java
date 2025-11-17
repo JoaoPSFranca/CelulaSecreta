@@ -4,10 +4,13 @@ import br.edu.ifsp.pep.logic.GameManager;
 import br.edu.ifsp.pep.logic.OpponentAI;
 import br.edu.ifsp.pep.logic.Opponent;
 import br.edu.ifsp.pep.model.Carta;
+import br.edu.ifsp.pep.model.ChallengeItem;
 import br.edu.ifsp.pep.model.Pergunta;
 import br.edu.ifsp.pep.model.Turno;
 import br.edu.ifsp.pep.network.*;
+import br.edu.ifsp.pep.service.ChallengeService;
 import br.edu.ifsp.pep.ui.UIManager;
+import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -23,6 +26,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 public class MainController {
 
     // --- FXML Components ---
@@ -36,6 +43,10 @@ public class MainController {
     @FXML private ImageView zoomCartaImageView;
     @FXML private VBox loadingOverlay;
     @FXML private Label loadingLabel;
+    @FXML private VBox painelDesafio;
+    @FXML private Label labelTimer;
+    @FXML private Label labelPerguntaDesafio;
+    @FXML private GridPane gridOpcoesDesafio;
 
     // --- Módulos Principais ---
     private GameManager gameManager;
@@ -43,6 +54,8 @@ public class MainController {
     private NetworkManager networkManager;
     private GameMode gameMode;
     private Opponent opponentAI;
+    private ChallengeService challengeService;
+    private AnimationTimer challengeTimer;
 
     // --- Estado da UI que o Controller precisa saber ---
     private final Button[] cartaBotoes = new Button[20];
@@ -52,6 +65,12 @@ public class MainController {
     // --- Outras variáveis ---
     private Pergunta perguntaAtualDoOponente;
 
+    // Variáveis para o Desafio (Fase 2)
+    private List<ChallengeItem> listaDesafio;
+    private int desafioIndexAtual;
+    private int desafioAcertos;
+    private long desafioStartTime;
+
     @FXML
     public void initialize() {
 
@@ -59,8 +78,10 @@ public class MainController {
 
     public void setupGame(GameSetup setup) {
         this.gameMode = setup.mode();
+        this.challengeService = new ChallengeService();
         this.uiManager = new UIManager(rootPane, cardGrid, chatBox, chatScroll, suaCartaImage,
-                btnPerguntar, btnPalpitar, btnSim, btnNao, zoomContainer, zoomCartaImageView);
+                btnPerguntar, btnPalpitar, btnSim, btnNao, zoomContainer, zoomCartaImageView,
+                painelDesafio, labelTimer, labelPerguntaDesafio, gridOpcoesDesafio);
 
         switch (gameMode) {
             case SINGLE_PLAYER:
@@ -204,17 +225,26 @@ public class MainController {
             }
 
             if (oponenteAcertou) { // sobrou nada pro beta
-                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), () -> System.exit(0));
+                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
             } else { // ganhamo sigma
-                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), () -> System.exit(0));
+                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
             }
         } else if (message instanceof String) { // Resultado do palpite
             String resultado = (String) message;
             if (resultado.equals("CORRETO")) { // ganhamo sigma
-                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), () -> System.exit(0));
+                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
             } else { // sobrou nada pro beta
-                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), () -> System.exit(0));
+                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
             }
+        } else if (message instanceof ChallengeSetup setup) {
+            // O Cliente recebeu o pacote de início de desafio do Host
+            uiManager.addSystemMessage("Desafio recebido do Host. Começando!");
+            prepararEIniciarDesafioUI(setup.perguntas());
+        }
+        else if (message instanceof ChallengeResult resultadoOponente) {
+            // O Host recebeu o resultado do Cliente
+            // **A FAZER (Próximos Passos):** Lógica para comparar os resultados e declarar o vencedor
+            System.out.println("Recebido resultado do oponente: " + resultadoOponente.acertos() + " acertos em " + resultadoOponente.tempoTotalSegundos() + "s");
         }
     }
 
@@ -270,7 +300,7 @@ public class MainController {
                         if (gameMode == GameMode.SINGLE_PLAYER) {
                             // Lógica para Single-Player (vs. IA)
                             boolean acertou = gameManager.verificarPalpite(palpite, true);
-                            uiManager.exibirFimDeJogo(acertou, gameManager.getEquipeOponente(), () -> System.exit(0));
+                            uiManager.exibirFimDeJogo(acertou, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
                         } else {
                             // Lógica para Multiplayer (Rede)
                             try {
@@ -405,7 +435,7 @@ public class MainController {
                 fimDeJogoDelay.setOnFinished(e -> {
                     // O resultado é invertido: se o oponente acertou (true), o jogador perdeu (vitoria = false).
                     boolean jogadorVenceu = !palpite.acertou();
-                    uiManager.exibirFimDeJogo(jogadorVenceu, gameManager.getEquipeOponente(), () -> System.exit(0));
+                    uiManager.exibirFimDeJogo(jogadorVenceu, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
                 });
                 fimDeJogoDelay.play();
             }
@@ -426,4 +456,152 @@ public class MainController {
         uiManager.updateUIForTurnState(gameManager.isMyTurn(), gameManager.isEsperandoRespostaDoJogador());
         anunciarTurnoNoChat();
     }
+
+    // segunda fase
+
+    private void iniciarDesafio() {
+        System.out.println("Iniciando Desafio (Fase 2)...");
+        uiManager.addSystemMessage("Iniciando Desafio de Velocidade!");
+
+        // Lógica de Rede: Apenas o HOST prepara e envia as perguntas.
+        if (gameMode == GameMode.MULTIPLAYER_HOST) {
+            // 1. Carregar e embaralhar as perguntas
+            List<ChallengeItem> desafios = challengeService.carregarDesafios();
+            Collections.shuffle(desafios);
+
+            // 2. Pegar apenas 10 (ou o número que quisermos)
+            this.listaDesafio = desafios.subList(0, Math.min(desafios.size(), 10));
+
+            // 3. Enviar o "Pacote" de setup para o cliente
+            try {
+                networkManager.send(new ChallengeSetup(this.listaDesafio));
+            } catch (Exception e) {
+                showAlert("Erro de Rede", "Não foi possível iniciar o desafio para o oponente.");
+                e.printStackTrace();
+                return;
+            }
+
+            // 4. Iniciar o desafio para si mesmo (Host)
+            prepararEIniciarDesafioUI(this.listaDesafio);
+
+        } else if (gameMode == GameMode.SINGLE_PLAYER) {
+            // Lógica para Single Player
+            List<ChallengeItem> desafios = challengeService.carregarDesafios();
+            Collections.shuffle(desafios);
+            this.listaDesafio = desafios.subList(0, Math.min(desafios.size(), 10));
+
+            // Inicia o desafio localmente
+            prepararEIniciarDesafioUI(this.listaDesafio);
+        }
+
+        // Se for CLIENT, não faz nada. Apenas espera o Host enviar o ChallengeSetup
+        // (Isso será tratado no 'processReceivedMessage')
+    }
+
+    private void prepararEIniciarDesafioUI(List<ChallengeItem> desafios) {
+        this.listaDesafio = desafios;
+        this.desafioIndexAtual = 0;
+        this.desafioAcertos = 0;
+        this.desafioStartTime = System.currentTimeMillis(); // Inicia o cronômetro
+
+        // 1. Chamar o UIManager para esconder a Fase 1 (grid, chat)
+        uiManager.transicionarParaDesafio();
+
+        // 2. Iniciar o cronômetro visual
+        iniciarCronometroDesafio();
+
+        // 3. Exibir a primeira pergunta
+        exibirProximaPerguntaDesafio();
+    }
+
+    private void iniciarCronometroDesafio() {
+        if (challengeTimer != null) {
+            challengeTimer.stop();
+        }
+        challengeTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                // Calcula o tempo decorrido
+                long elapsedMillis = System.currentTimeMillis() - desafioStartTime;
+                long elapsedSeconds = elapsedMillis / 1000;
+                long minutes = elapsedSeconds / 60;
+                long seconds = elapsedSeconds % 60;
+
+                // Atualiza o UIManager
+                uiManager.atualizarTimer(String.format("%02d:%02d", minutes, seconds));
+            }
+        };
+        challengeTimer.start();
+    }
+
+    private void exibirProximaPerguntaDesafio() {
+        if (desafioIndexAtual < listaDesafio.size()) {
+            // Ainda há perguntas
+            ChallengeItem itemAtual = listaDesafio.get(desafioIndexAtual);
+
+            // Pede ao UIManager para mostrar esta pergunta e nos avisa quando uma opção for clicada
+            // O UIManager chamará 'onRespostaDesafio' quando um botão for pressionado
+            uiManager.exibirPerguntaDesafio(itemAtual, this::onRespostaDesafio);
+        } else {
+            // Acabaram as perguntas
+            finalizarDesafio();
+        }
+    }
+
+    private void onRespostaDesafio(String respostaSelecionada) {
+        // 1. Pega o item da pergunta atual
+        ChallengeItem itemAtual = listaDesafio.get(desafioIndexAtual);
+
+        // 2. Verifica se a resposta está correta
+        if (itemAtual.respostaCorreta().equals(respostaSelecionada)) {
+            this.desafioAcertos++;
+            // (Opcional: dar feedback visual de acerto)
+        } else {
+            // (Opcional: dar feedback visual de erro)
+        }
+
+        // 3. Avança para a próxima pergunta
+        this.desafioIndexAtual++;
+        exibirProximaPerguntaDesafio();
+    }
+
+    private void finalizarDesafio() {
+        // 1. Parar o cronômetro
+        if (challengeTimer != null) {
+            challengeTimer.stop();
+        }
+
+        // 2. Calcular tempo final
+        long elapsedMillis = System.currentTimeMillis() - desafioStartTime;
+        double tempoTotalSegundos = elapsedMillis / 1000.0;
+        String tempoFormatado = labelTimer.getText().replace("Tempo: ", ""); // Pega o tempo final da UI
+
+        // 3. Lógica de Fim de Jogo (SINGLE PLAYER)
+        if (gameMode == GameMode.SINGLE_PLAYER) {
+            uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, this::sairDoJogo);
+        }
+        // 4. Lógica de Fim de Jogo (MULTIPLAYER)
+        else {
+            // (A FAZER NO PRÓXIMO PASSO: Lógica de rede para enviar resultados)
+
+            // Por enquanto, vamos apenas exibir o resultado localmente
+            uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, this::sairDoJogo);
+
+            // (Na próxima etapa, substituiremos a linha acima pela lógica de
+            // envio de resultados e espera pelo oponente)
+        }
+    }
+
+    private void sairDoJogo() {
+        System.exit(0);
+    }
+
+    public record ChallengeSetup(
+            List<ChallengeItem> perguntas
+    ) implements Serializable { }
+
+    public record ChallengeResult(
+            int acertos,
+            double tempoTotalSegundos
+    ) implements Serializable { }
 }
