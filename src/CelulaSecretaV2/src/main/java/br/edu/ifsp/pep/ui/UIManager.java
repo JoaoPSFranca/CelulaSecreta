@@ -27,6 +27,7 @@ public class UIManager {
     private final VBox zoomContainer;
     private final ImageView zoomCartaImageView;
     private final Image imagemVerso;
+    private VBox fimDesafioPane;
 
     private final VBox painelDesafio;
     private final Label labelTimer;
@@ -335,6 +336,10 @@ public class UIManager {
     }
 
     public void transicionarParaDesafio() {
+        rootPane.getChildren().removeIf(node -> node.getStyle().contains("-fx-background-color: #31413d;"));
+        rootPane.getChildren().removeIf(node -> "fimDesafioPane".equals(node.getId()));
+        this.fimDesafioPane = null;
+
         // Esconde a Fase 1
         cardGrid.setVisible(false);
         cardGrid.setManaged(false);
@@ -377,11 +382,17 @@ public class UIManager {
         labelTimer.setText("Tempo: " + segundosFormatados);
     }
 
-    public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal, Runnable onFechar) {
+    public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal) {
+        if (this.fimDesafioPane != null && rootPane.getChildren().contains(this.fimDesafioPane)) {
+            return; // O painel já está sendo exibido, não faça nada.
+        }
+
         // Desabilita o painel de perguntas
         painelDesafio.setDisable(true);
 
-        VBox fimDesafioPane = new VBox(20);
+        this.fimDesafioPane = new VBox(20);
+        this.fimDesafioPane.setId("fimDesafioPane");
+
         fimDesafioPane.setAlignment(Pos.CENTER);
         fimDesafioPane.setStyle("-fx-background-color: #31413d; -fx-padding: 50; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
         fimDesafioPane.setMaxSize(500, 400);
@@ -395,13 +406,81 @@ public class UIManager {
         Label tempoLabel = new Label("Tempo final: " + tempoFinal);
         tempoLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
 
-        Button fecharBtn = new Button("Fechar Jogo");
-        fecharBtn.getStyleClass().add("round-button");
-        fecharBtn.setOnAction(e -> onFechar.run());
-
-        fimDesafioPane.getChildren().addAll(titulo, placarLabel, tempoLabel, fecharBtn);
+        fimDesafioPane.getChildren().addAll(titulo, placarLabel, tempoLabel);
 
         // Adiciona o painel de fim de desafio sobre o painel de desafio
         rootPane.getChildren().add(fimDesafioPane);
+    }
+
+    public void exibirResultadoFinal(String mensagemResultado, Runnable onFechar) {
+        // Encontra o painel 'fimDesafioPane' que já está na tela
+        if (this.fimDesafioPane == null) {
+            System.err.println("Erro: O painel 'fimDesafioPane' é nulo. Não é possível exibir o resultado final.");
+            return; // Painel não foi criado, não faz nada
+        }
+
+        Label vencedorLabel = new Label(mensagemResultado);
+        vencedorLabel.setStyle("-fx-font-size: 22px; -fx-text-fill: #e0e5e4; -fx-font-weight: bold;");
+        VBox.setMargin(vencedorLabel, new javafx.geometry.Insets(15, 0, 0, 0));
+
+        Button fecharBtn = new Button("Fechar Jogo");
+        fecharBtn.getStyleClass().add("round-button");
+        fecharBtn.setOnAction(e -> onFechar.run());
+        VBox.setMargin(fecharBtn, new javafx.geometry.Insets(15, 0, 0, 0));
+
+        fimDesafioPane.getChildren().addAll(vencedorLabel, fecharBtn);
+    }
+
+    public void exibirAguardandoOponente(String mensagem) {
+        VBox aguardandoPane = new VBox(20);
+        aguardandoPane.setId("aguardandoPane"); // ID para podermos fechar depois
+        aguardandoPane.setAlignment(Pos.CENTER);
+        aguardandoPane.setStyle("-fx-background-color: rgba(40, 40, 40, 0.85); -fx-padding: 50;");
+
+        Label label = new Label(mensagem);
+        label.setStyle("-fx-text-fill: white; -fx-font-size: 18px;");
+        ProgressIndicator pi = new ProgressIndicator();
+
+        aguardandoPane.getChildren().addAll(label, pi);
+        rootPane.getChildren().add(aguardandoPane);
+    }
+
+    public void fecharAguardando() {
+        rootPane.getChildren().removeIf(node -> "aguardandoPane".equals(node.getId()));
+    }
+
+    public void exibirConviteDesafio(Runnable onAceitar, Runnable onRecusar) {
+        // Primeiro, remove o painel de fim de jogo da Fase 1
+        rootPane.getChildren().removeIf(node -> node.getStyle().contains("-fx-background-color: #31413d;"));
+
+        VBox convitePane = new VBox(20);
+        convitePane.setAlignment(Pos.CENTER);
+        convitePane.setStyle("-fx-background-color: #31413d; -fx-padding: 50; -fx-border-color: #a0d4c8; -fx-border-width: 3; -fx-border-radius: 20; -fx-background-radius: 20;");
+        convitePane.setMaxSize(450, 450);
+
+        Label titulo = new Label("Convite para Desafio!");
+        titulo.setStyle("-fx-font-size: 24px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;");
+        Label sub = new Label("O Host convidou você para a Fase 2.");
+        sub.setStyle("-fx-font-size: 16px; -fx-text-fill: #e0e5e4;");
+
+        Button btnAceitar = new Button("Aceitar");
+        btnAceitar.getStyleClass().add("round-button");
+        btnAceitar.setOnAction(e -> {
+            rootPane.getChildren().remove(convitePane);
+            onAceitar.run();
+        });
+
+        Button btnRecusar = new Button("Recusar");
+        btnRecusar.getStyleClass().add("round-button");
+        btnRecusar.setOnAction(e -> {
+            rootPane.getChildren().remove(convitePane);
+            onRecusar.run();
+        });
+
+        HBox botoes = new HBox(15, btnAceitar, btnRecusar);
+        botoes.setAlignment(Pos.CENTER);
+
+        convitePane.getChildren().addAll(titulo, sub, botoes);
+        rootPane.getChildren().add(convitePane);
     }
 }

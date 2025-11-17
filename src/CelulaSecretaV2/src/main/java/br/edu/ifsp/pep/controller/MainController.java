@@ -10,15 +10,17 @@ import br.edu.ifsp.pep.model.Turno;
 import br.edu.ifsp.pep.network.*;
 import br.edu.ifsp.pep.service.ChallengeService;
 import br.edu.ifsp.pep.ui.UIManager;
+import br.edu.ifsp.pep.utills.ChallengeConfirm;
+import br.edu.ifsp.pep.utills.ChallengeOver;
+import br.edu.ifsp.pep.utills.ChallengeResult;
+import br.edu.ifsp.pep.utills.ChallengeSetup;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -26,7 +28,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,7 +55,6 @@ public class MainController {
     private UIManager uiManager;
     private NetworkManager networkManager;
     private GameMode gameMode;
-    private Opponent opponentAI;
     private ChallengeService challengeService;
     private AnimationTimer challengeTimer;
 
@@ -61,6 +62,12 @@ public class MainController {
     private final Button[] cartaBotoes = new Button[20];
     private final boolean[] cartaAtiva = new boolean[20];
     private Button cartaSelecionada;
+    private ChallengeResult myChallengeResult;
+    private ChallengeResult opponentChallengeResult;
+    private boolean desafioFinalizado = false;
+    private ChallengeSetup challengeSetupPendente;
+    private boolean clientIsReadyForChallenge = false;
+    private boolean resultadosProcessados = false;
 
     // --- Outras variáveis ---
     private Pergunta perguntaAtualDoOponente;
@@ -237,14 +244,41 @@ public class MainController {
                 uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
             }
         } else if (message instanceof ChallengeSetup setup) {
-            // O Cliente recebeu o pacote de início de desafio do Host
-            uiManager.addSystemMessage("Desafio recebido do Host. Começando!");
-            prepararEIniciarDesafioUI(setup.perguntas());
-        }
-        else if (message instanceof ChallengeResult resultadoOponente) {
-            // O Host recebeu o resultado do Cliente
-            // **A FAZER (Próximos Passos):** Lógica para comparar os resultados e declarar o vencedor
-            System.out.println("Recebido resultado do oponente: " + resultadoOponente.acertos() + " acertos em " + resultadoOponente.tempoTotalSegundos() + "s");
+            // O Cliente recebeu o convite!
+            this.challengeSetupPendente = setup; // Salva o convite
+            uiManager.fecharAguardando(); // Fecha o "Aguardando..." se estiver aberto
+            if (this.clientIsReadyForChallenge) {
+                // Se o cliente já clicou em "jogar", aceita automaticamente.
+                aceitarDesafio();
+            } else {
+                // Se o cliente ainda não clicou, mostra o convite.
+                uiManager.exibirConviteDesafio(this::aceitarDesafio, this::recusarDesafio);
+            }
+        }  else if (message instanceof ChallengeResult resultadoOponente) {
+            // --- LÓGICA ATUALIZADA (SÓ O HOST RECEBE ISSO) ---
+            this.opponentChallengeResult = resultadoOponente;
+            if (this.myChallengeResult != null) {
+                // O Host também já terminou, processar resultados
+                processarResultados(myChallengeResult, opponentChallengeResult);
+            } else {
+                // O Host ainda está jogando, apenas anota o resultado
+                uiManager.addSystemMessage("Oponente terminou. Continue jogando!");
+            }
+        } else if (message instanceof ChallengeOver(String mensagemResultado)) {
+            uiManager.exibirResultadoFinal(mensagemResultado, this::sairDoJogo);
+        } else if (message instanceof ChallengeConfirm(boolean aceito)) {
+            // O Host recebeu a resposta do Cliente
+            uiManager.fecharAguardando(); // Fecha o painel "Aguardando..."
+
+            if (aceito) {
+                // Cliente aceitou! Inicia o jogo para o Host.
+                uiManager.addSystemMessage("Cliente aceitou. Começando!");
+                prepararEIniciarDesafioUI(this.listaDesafio);
+            } else {
+                // Cliente recusou.
+                showAlert("Desafio Recusado", "O oponente recusou o desafio.");
+                // O Host fica na tela de fim de jogo e pode "Sair"
+            }
         }
     }
 
@@ -461,48 +495,74 @@ public class MainController {
 
     private void iniciarDesafio() {
         System.out.println("Iniciando Desafio (Fase 2)...");
-        uiManager.addSystemMessage("Iniciando Desafio de Velocidade!");
 
-        // Lógica de Rede: Apenas o HOST prepara e envia as perguntas.
+        // Lógica do Host: Envia o convite e espera.
         if (gameMode == GameMode.MULTIPLAYER_HOST) {
-            // 1. Carregar e embaralhar as perguntas
+            uiManager.addSystemMessage("Enviando convite de desafio...");
+
+            // 1. Carregar e preparar a lista
             List<ChallengeItem> desafios = challengeService.carregarDesafios();
             Collections.shuffle(desafios);
+            List<ChallengeItem> subLista = desafios.subList(0, Math.min(desafios.size(), 10));
+            this.listaDesafio = new ArrayList<>(subLista); // Salva para si mesmo
 
-            // 2. Pegar apenas 10 (ou o número que quisermos)
-            this.listaDesafio = desafios.subList(0, Math.min(desafios.size(), 10));
-
-            // 3. Enviar o "Pacote" de setup para o cliente
+            // 2. Enviar o "Pacote" de setup para o cliente
             try {
                 networkManager.send(new ChallengeSetup(this.listaDesafio));
             } catch (Exception e) {
-                showAlert("Erro de Rede", "Não foi possível iniciar o desafio para o oponente.");
+                showAlert("Erro de Rede", "Não foi possível enviar o convite.");
                 e.printStackTrace();
                 return;
             }
 
-            // 4. Iniciar o desafio para si mesmo (Host)
-            prepararEIniciarDesafioUI(this.listaDesafio);
+            // 3. Exibir tela de "Aguardando"
+            uiManager.exibirAguardandoOponente("Aguardando resposta do Cliente...");
 
         } else if (gameMode == GameMode.SINGLE_PLAYER) {
-            // Lógica para Single Player
+            // Lógica Single Player não muda
             List<ChallengeItem> desafios = challengeService.carregarDesafios();
             Collections.shuffle(desafios);
-            this.listaDesafio = desafios.subList(0, Math.min(desafios.size(), 10));
-
-            // Inicia o desafio localmente
+            this.listaDesafio = new ArrayList<>(desafios.subList(0, Math.min(desafios.size(), 10)));
             prepararEIniciarDesafioUI(this.listaDesafio);
+        } else {
+            // Lógica do Cliente: Ao clicar, apenas exibe "Aguardando..."
+            this.clientIsReadyForChallenge = true;
+            uiManager.exibirAguardandoOponente("Aguardando o Host iniciar o desafio...");
         }
+    }
 
-        // Se for CLIENT, não faz nada. Apenas espera o Host enviar o ChallengeSetup
-        // (Isso será tratado no 'processReceivedMessage')
+    private void aceitarDesafio() {
+        this.clientIsReadyForChallenge = false;
+        if (challengeSetupPendente == null) return; // Segurança
+        try {
+            networkManager.send(new ChallengeConfirm(true));
+            // Inicia o jogo para o cliente
+            prepararEIniciarDesafioUI(challengeSetupPendente.perguntas());
+            this.challengeSetupPendente = null; // Limpa o convite
+        } catch (Exception e) {
+            showAlert("Erro de Rede", "Não foi possível confirmar o desafio.");
+        }
+    }
+
+    private void recusarDesafio() {
+        this.clientIsReadyForChallenge = false;
+        try {
+            networkManager.send(new ChallengeConfirm(false));
+            sairDoJogo(); // Simplesmente sai do jogo
+        } catch (Exception e) {
+            // Falha ao enviar a recusa, apenas sai
+            sairDoJogo();
+        }
     }
 
     private void prepararEIniciarDesafioUI(List<ChallengeItem> desafios) {
         this.listaDesafio = desafios;
         this.desafioIndexAtual = 0;
         this.desafioAcertos = 0;
-        this.desafioStartTime = System.currentTimeMillis(); // Inicia o cronômetro
+        this.desafioStartTime = System.currentTimeMillis();
+        this.desafioFinalizado = false;
+        this.clientIsReadyForChallenge = false;
+        this.resultadosProcessados = false;
 
         // 1. Chamar o UIManager para esconder a Fase 1 (grid, chat)
         uiManager.transicionarParaDesafio();
@@ -542,6 +602,7 @@ public class MainController {
             // Pede ao UIManager para mostrar esta pergunta e nos avisa quando uma opção for clicada
             // O UIManager chamará 'onRespostaDesafio' quando um botão for pressionado
             uiManager.exibirPerguntaDesafio(itemAtual, this::onRespostaDesafio);
+            gridOpcoesDesafio.setDisable(false);
         } else {
             // Acabaram as perguntas
             finalizarDesafio();
@@ -549,23 +610,32 @@ public class MainController {
     }
 
     private void onRespostaDesafio(String respostaSelecionada) {
+        gridOpcoesDesafio.setDisable(true);
+
         // 1. Pega o item da pergunta atual
         ChallengeItem itemAtual = listaDesafio.get(desafioIndexAtual);
 
         // 2. Verifica se a resposta está correta
         if (itemAtual.respostaCorreta().equals(respostaSelecionada)) {
             this.desafioAcertos++;
-            // (Opcional: dar feedback visual de acerto)
-        } else {
-            // (Opcional: dar feedback visual de erro)
         }
 
         // 3. Avança para a próxima pergunta
         this.desafioIndexAtual++;
-        exibirProximaPerguntaDesafio();
+
+        PauseTransition delay = new PauseTransition(Duration.millis(250)); // 0.25 segundos
+        delay.setOnFinished(e -> {
+            exibirProximaPerguntaDesafio();
+        });
+        delay.play();
     }
 
     private void finalizarDesafio() {
+        if (desafioFinalizado) {
+            return;
+        }
+        this.desafioFinalizado = true;
+
         // 1. Parar o cronômetro
         if (challengeTimer != null) {
             challengeTimer.stop();
@@ -574,34 +644,88 @@ public class MainController {
         // 2. Calcular tempo final
         long elapsedMillis = System.currentTimeMillis() - desafioStartTime;
         double tempoTotalSegundos = elapsedMillis / 1000.0;
-        String tempoFormatado = labelTimer.getText().replace("Tempo: ", ""); // Pega o tempo final da UI
+        String tempoFormatado = labelTimer.getText().replace("Tempo: ", "");
 
-        // 3. Lógica de Fim de Jogo (SINGLE PLAYER)
+        // 3. Salvar meu resultado
+        this.myChallengeResult = new ChallengeResult(desafioAcertos, tempoTotalSegundos);
+
+        // 4. Exibir o placar local (sem botão de fechar)
+        uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado);
+
+        // 5. Lógica de Fim de Jogo
         if (gameMode == GameMode.SINGLE_PLAYER) {
-            uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, this::sairDoJogo);
+            // No single player, o resultado final é imediato
+            uiManager.exibirResultadoFinal("Bom trabalho!", this::sairDoJogo);
+
+        } else if (gameMode == GameMode.MULTIPLAYER_CLIENT) {
+            // O Cliente envia seu resultado para o Host e espera
+            try {
+                networkManager.send(myChallengeResult);
+                uiManager.addSystemMessage("Você terminou! Aguardando o resultado do oponente...");
+            } catch (Exception e) {
+                showAlert("Erro de Rede", "Não foi possível enviar seu resultado.");
+            }
+
+        } else if (gameMode == GameMode.MULTIPLAYER_HOST) {
+            // O Host verifica se o Cliente já terminou
+            if (opponentChallengeResult != null) {
+                // Sim, o Cliente terminou primeiro. Processar resultados agora.
+                processarResultados(myChallengeResult, opponentChallengeResult);
+            } else {
+                // Não, o Host terminou primeiro. Apenas espera.
+                uiManager.addSystemMessage("Você terminou! Aguardando o resultado do oponente...");
+            }
         }
-        // 4. Lógica de Fim de Jogo (MULTIPLAYER)
-        else {
-            // (A FAZER NO PRÓXIMO PASSO: Lógica de rede para enviar resultados)
+    }
 
-            // Por enquanto, vamos apenas exibir o resultado localmente
-            uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, this::sairDoJogo);
+    private synchronized void processarResultados(ChallengeResult hostResult, ChallengeResult clientResult) {
+        if (resultadosProcessados) {
+            return; // Já processamos, não faça nada.
+        }
+        this.resultadosProcessados = true;
 
-            // (Na próxima etapa, substituiremos a linha acima pela lógica de
-            // envio de resultados e espera pelo oponente)
+        String msgVencedorHost;
+        String msgVencedorClient;
+
+        // Lógica de Vencedor:
+        // 1. Mais acertos vence.
+        // 2. Se houver empate nos acertos, menor tempo vence.
+
+        if (hostResult.acertos() > clientResult.acertos()) {
+            msgVencedorHost = "Você Venceu! (Placar: " + hostResult.acertos() + " a " + clientResult.acertos() + ")";
+            msgVencedorClient = "Você Perdeu! (Placar: " + clientResult.acertos() + " a " + hostResult.acertos() + ")";
+        } else if (clientResult.acertos() > hostResult.acertos()) {
+            msgVencedorHost = "Você Perdeu! (Placar: " + hostResult.acertos() + " a " + clientResult.acertos() + ")";
+            msgVencedorClient = "Você Venceu! (Placar: " + clientResult.acertos() + " a " + hostResult.acertos() + ")";
+        } else {
+            // Empate nos acertos, verificar o tempo
+            if (hostResult.tempoTotalSegundos() < clientResult.tempoTotalSegundos()) {
+                msgVencedorHost = "Você Venceu! (No tempo)";
+                msgVencedorClient = "Você Perdeu! (No tempo)";
+            } else if (clientResult.tempoTotalSegundos() < hostResult.tempoTotalSegundos()) {
+                msgVencedorHost = "Você Perdeu! (No tempo)";
+                msgVencedorClient = "Você Venceu! (No tempo)";
+            } else {
+                msgVencedorHost = "Empate notável!";
+                msgVencedorClient = "Empate notável!";
+            }
+        }
+
+        // Anunciar o resultado para o Host
+        Platform.runLater(() -> {
+            uiManager.exibirResultadoFinal(msgVencedorHost, this::sairDoJogo);
+        });
+
+        // Enviar o resultado para o Cliente
+        try {
+            networkManager.send(new ChallengeOver(msgVencedorClient));
+        } catch (Exception e) {
+            // Esta exceção não pode travar a thread da rede
+            e.printStackTrace();
         }
     }
 
     private void sairDoJogo() {
         System.exit(0);
     }
-
-    public record ChallengeSetup(
-            List<ChallengeItem> perguntas
-    ) implements Serializable { }
-
-    public record ChallengeResult(
-            int acertos,
-            double tempoTotalSegundos
-    ) implements Serializable { }
 }
