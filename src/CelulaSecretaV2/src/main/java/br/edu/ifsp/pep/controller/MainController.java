@@ -77,6 +77,7 @@ public class MainController {
     private int desafioIndexAtual;
     private int desafioAcertos;
     private long desafioStartTime;
+    private List<Boolean> desafioRespostas; // NOVO: rastreia acertos/erros
 
     @FXML
     public void initialize() {
@@ -563,6 +564,7 @@ public class MainController {
         this.desafioFinalizado = false;
         this.clientIsReadyForChallenge = false;
         this.resultadosProcessados = false;
+        this.desafioRespostas = new ArrayList<>(); // NOVO: inicializa a lista
 
         // 1. Chamar o UIManager para esconder a Fase 1 (grid, chat)
         uiManager.transicionarParaDesafio();
@@ -616,11 +618,15 @@ public class MainController {
         ChallengeItem itemAtual = listaDesafio.get(desafioIndexAtual);
 
         // 2. Verifica se a resposta está correta
-        if (itemAtual.respostaCorreta().equals(respostaSelecionada)) {
+        boolean acertou = itemAtual.respostaCorreta().equals(respostaSelecionada);
+        if (acertou) {
             this.desafioAcertos++;
         }
+        
+        // 3. NOVO: Registra o resultado da resposta
+        this.desafioRespostas.add(acertou);
 
-        // 3. Avança para a próxima pergunta
+        // 4. Avança para a próxima pergunta
         this.desafioIndexAtual++;
 
         PauseTransition delay = new PauseTransition(Duration.millis(250)); // 0.25 segundos
@@ -646,11 +652,11 @@ public class MainController {
         double tempoTotalSegundos = elapsedMillis / 1000.0;
         String tempoFormatado = labelTimer.getText().replace("Tempo: ", "");
 
-        // 3. Salvar meu resultado
-        this.myChallengeResult = new ChallengeResult(desafioAcertos, tempoTotalSegundos);
+        // 3. Salvar meu resultado (ATUALIZADO com a lista de respostas)
+        this.myChallengeResult = new ChallengeResult(desafioAcertos, tempoTotalSegundos, desafioRespostas);
 
         // 4. Exibir o placar local (sem botão de fechar)
-        uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado);
+        uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, desafioRespostas);
 
         // 5. Lógica de Fim de Jogo
         if (gameMode == GameMode.SINGLE_PLAYER) {

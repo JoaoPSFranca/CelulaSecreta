@@ -382,7 +382,7 @@ public class UIManager {
         labelTimer.setText("Tempo: " + segundosFormatados);
     }
 
-    public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal) {
+    public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal, List<Boolean> respostas) {
         if (this.fimDesafioPane != null && rootPane.getChildren().contains(this.fimDesafioPane)) {
             return; // O painel já está sendo exibido, não faça nada.
         }
@@ -406,7 +406,17 @@ public class UIManager {
         Label tempoLabel = new Label("Tempo final: " + tempoFinal);
         tempoLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #e0e5e4;");
 
-        fimDesafioPane.getChildren().addAll(titulo, placarLabel, tempoLabel);
+        // NOVO: Criar feedback visual das respostas
+        HBox feedbackBox = new HBox(10);
+        feedbackBox.setAlignment(Pos.CENTER);
+        
+        for (Boolean acertou : respostas) {
+            Label iconLabel = new Label(acertou ? "✅" : "❌");
+            iconLabel.setStyle("-fx-font-size: 24px;");
+            feedbackBox.getChildren().add(iconLabel);
+        }
+
+        fimDesafioPane.getChildren().addAll(titulo, placarLabel, tempoLabel, feedbackBox);
 
         // Adiciona o painel de fim de desafio sobre o painel de desafio
         rootPane.getChildren().add(fimDesafioPane);
