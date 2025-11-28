@@ -14,6 +14,8 @@ import br.edu.ifsp.pep.utills.ChallengeConfirm;
 import br.edu.ifsp.pep.utills.ChallengeOver;
 import br.edu.ifsp.pep.utills.ChallengeResult;
 import br.edu.ifsp.pep.utills.ChallengeSetup;
+import br.edu.ifsp.pep.utills.GuessResult;
+import br.edu.ifsp.pep.model.Equipe;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -226,23 +228,43 @@ public class MainController {
             // Verifica se o palpite está correto
             boolean oponenteAcertou = gameManager.verificarPalpite(palpiteRecebido, false);
 
-            try { // envia resposta
-                networkManager.send(oponenteAcertou ? "CORRETO" : "INCORRETO");
+            try { 
+                // Envia AMBAS as cartas secretas
+                Carta minhaCartaSecreta = gameManager.getSuaEquipe().getCartaSecreta();
+                Carta cartaDoOponente = gameManager.getEquipeOponente().getCartaSecreta();
+                networkManager.send(new GuessResult(oponenteAcertou, minhaCartaSecreta, cartaDoOponente));
             } catch (Exception e) {
                 showAlert("Erro de Rede", "Não foi possível enviar o resultado do palpite.");
             }
 
-            if (oponenteAcertou) { // sobrou nada pro beta
-                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
-            } else { // ganhamo sigma
-                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
+            if (oponenteAcertou) { 
+                // Oponente ACERTOU = Você PERDEU
+                // Deve mostrar a carta do OPONENTE (que ele descobriu)
+                Equipe equipeParaExibir = new Equipe("Equipe Oponente");
+                equipeParaExibir.setCartaSecreta(gameManager.getEquipeOponente().getCartaSecreta());
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+            } else { 
+                // Oponente ERROU = Você GANHOU
+                // Não precisa mostrar carta (vitória)
+                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
             }
-        } else if (message instanceof String) { // Resultado do palpite
-            String resultado = (String) message;
-            if (resultado.equals("CORRETO")) { // ganhamo sigma
-                uiManager.exibirFimDeJogo(true, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
-            } else { // sobrou nada pro beta
-                uiManager.exibirFimDeJogo(false, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
+        } else if (message instanceof GuessResult) {
+            GuessResult resultado = (GuessResult) message;
+            
+            // Atualiza ambas as cartas com os valores reais
+            gameManager.getEquipeOponente().setCartaSecreta(resultado.cartaDoJogadorQueRecebeuPalpite());
+            gameManager.getSuaEquipe().setCartaSecreta(resultado.cartaDoJogadorQuePalpitou());
+            
+            if (resultado.correto()) { 
+                // Você ACERTOU = Você GANHOU
+                // Não precisa mostrar carta (vitória)
+                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
+            } else { 
+                // Você ERROU = Você PERDEU
+                // Deve mostrar a carta CORRETA do oponente (que você não descobriu)
+                Equipe equipeParaExibir = new Equipe("Equipe Oponente");
+                equipeParaExibir.setCartaSecreta(gameManager.getEquipeOponente().getCartaSecreta());
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
             }
         } else if (message instanceof ChallengeSetup setup) {
             // O Cliente recebeu o convite!

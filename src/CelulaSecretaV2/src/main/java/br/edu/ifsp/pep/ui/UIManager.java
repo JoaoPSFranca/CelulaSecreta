@@ -229,6 +229,7 @@ public class UIManager {
 
         fimDeJogoPane.getChildren().add(titulo);
 
+        // Só mostra a carta se for DERROTA e a equipe não for nula
         if (!vitoria && oponente != null && oponente.getCartaSecreta() != null) {
             Label info = new Label("A carta secreta era:");
             info.setStyle("-fx-font-size: 16px; -fx-text-fill: #e0e5e4;");
