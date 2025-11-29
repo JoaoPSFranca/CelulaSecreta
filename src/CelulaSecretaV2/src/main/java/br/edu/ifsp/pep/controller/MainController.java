@@ -31,7 +31,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class MainController {
@@ -50,6 +49,7 @@ public class MainController {
     @FXML private VBox painelDesafio;
     @FXML private Label labelTimer;
     @FXML private Label labelPerguntaDesafio;
+    @FXML private Label labelContador;
     @FXML private GridPane gridOpcoesDesafio;
 
     // --- Módulos Principais ---
@@ -91,7 +91,7 @@ public class MainController {
         this.challengeService = new ChallengeService();
         this.uiManager = new UIManager(rootPane, cardGrid, chatBox, chatScroll, suaCartaImage,
                 btnPerguntar, btnPalpitar, btnSim, btnNao, zoomContainer, zoomCartaImageView,
-                painelDesafio, labelTimer, labelPerguntaDesafio, gridOpcoesDesafio);
+                painelDesafio, labelTimer, labelPerguntaDesafio, gridOpcoesDesafio, labelContador);
 
         switch (gameMode) {
             case SINGLE_PLAYER:
@@ -523,11 +523,8 @@ public class MainController {
         if (gameMode == GameMode.MULTIPLAYER_HOST) {
             uiManager.addSystemMessage("Enviando convite de desafio...");
 
-            // 1. Carregar e preparar a lista
-            List<ChallengeItem> desafios = challengeService.carregarDesafios();
-            Collections.shuffle(desafios);
-            List<ChallengeItem> subLista = desafios.subList(0, Math.min(desafios.size(), 10));
-            this.listaDesafio = new ArrayList<>(subLista); // Salva para si mesmo
+            // 1. Obter 10 desafios aleatórios do banco de questões
+            this.listaDesafio = challengeService.obterDesafiosAleatorios(10);
 
             // 2. Enviar o "Pacote" de setup para o cliente
             try {
@@ -542,10 +539,8 @@ public class MainController {
             uiManager.exibirAguardandoOponente("Aguardando resposta do Cliente...");
 
         } else if (gameMode == GameMode.SINGLE_PLAYER) {
-            // Lógica Single Player não muda
-            List<ChallengeItem> desafios = challengeService.carregarDesafios();
-            Collections.shuffle(desafios);
-            this.listaDesafio = new ArrayList<>(desafios.subList(0, Math.min(desafios.size(), 10)));
+            // Lógica Single Player: Obter 10 desafios aleatórios para a Fase 2
+            this.listaDesafio = challengeService.obterDesafiosAleatorios(10);
             prepararEIniciarDesafioUI(this.listaDesafio);
         } else {
             // Lógica do Cliente: Ao clicar, apenas exibe "Aguardando..."
@@ -622,6 +617,10 @@ public class MainController {
         if (desafioIndexAtual < listaDesafio.size()) {
             // Ainda há perguntas
             ChallengeItem itemAtual = listaDesafio.get(desafioIndexAtual);
+
+            // Atualizar contador de perguntas
+            int numeroPergunta = desafioIndexAtual + 1;
+            uiManager.atualizarContadorDesafio(numeroPergunta, listaDesafio.size());
 
             // Pede ao UIManager para mostrar esta pergunta e nos avisa quando uma opção for clicada
             // O UIManager chamará 'onRespostaDesafio' quando um botão for pressionado

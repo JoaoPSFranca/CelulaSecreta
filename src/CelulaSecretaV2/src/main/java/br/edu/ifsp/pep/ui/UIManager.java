@@ -32,11 +32,12 @@ public class UIManager {
     private final VBox painelDesafio;
     private final Label labelTimer;
     private final Label labelPerguntaDesafio;
+    private final Label labelContador;
     private final GridPane gridOpcoesDesafio;
 
     public UIManager(StackPane rootPane, GridPane cardGrid, VBox chatBox, ScrollPane chatScroll,
                      ImageView suaCartaImage, Button btnPerguntar, Button btnPalpitar,
-                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView, VBox painelDesafio, Label labelTimer, Label labelPerguntaDesafio, GridPane gridOpcoesDesafio) {
+                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView, VBox painelDesafio, Label labelTimer, Label labelPerguntaDesafio, GridPane gridOpcoesDesafio, Label labelContador) {
         this.rootPane = rootPane;
         this.cardGrid = cardGrid;
         this.chatBox = chatBox;
@@ -52,6 +53,7 @@ public class UIManager {
         this.labelTimer = labelTimer;
         this.labelPerguntaDesafio = labelPerguntaDesafio;
         this.gridOpcoesDesafio = gridOpcoesDesafio;
+        this.labelContador = labelContador;
         this.imagemVerso = new Image(getClass().getResource("/images/verso.png").toExternalForm());
 
         this.chatBox.heightProperty().addListener((obs, oldHeight, newHeight) -> {
@@ -381,6 +383,10 @@ public class UIManager {
 
     public void atualizarTimer(String segundosFormatados) {
         labelTimer.setText("Tempo: " + segundosFormatados);
+    }
+
+    public void atualizarContadorDesafio(int perguntaAtual, int totalPerguntas) {
+        labelContador.setText(perguntaAtual + "/" + totalPerguntas);
     }
 
     public void exibirFimDesafio(int acertos, int totalPerguntas, String tempoFinal, List<Boolean> respostas) {

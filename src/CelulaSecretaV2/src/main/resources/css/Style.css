@@ -258,3 +258,135 @@
     -fx-background-color: #a0d4c8;
     -fx-text-fill: #31413d;
 }
+
+/* ============ BOTÕES DE DESAFIO (FASE 2) ============ */
+.challenge-option-button {
+    -fx-background-color: #40514d;
+    -fx-text-fill: #e0e5e4;
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 15px;
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease-in-out;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+    -fx-text-alignment: center;
+    -fx-wrapText: true;
+}
+
+.challenge-option-button:hover {
+    -fx-background-color: #a0d4c8;
+    -fx-text-fill: #31413d;
+    -fx-border-color: #31413d;
+    -fx-effect: dropshadow(gaussian, rgba(160, 212, 200, 0.6), 12, 0.8, 0, 0);
+}
+
+.challenge-option-button:pressed {
+    -fx-background-color: #7cb8ac;
+    -fx-border-color: #31413d;
+    -fx-effect: dropshadow(gaussian, rgba(160, 212, 200, 0.8), 15, 1.0, 0, 0);
+}
+
+.challenge-option-button:disabled {
+    -fx-background-color: #2a3430;
+    -fx-text-fill: #5a6a66;
+    -fx-border-color: #4a5a56;
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+/* ============ CONTADOR DE PERGUNTAS (FASE 2) ============ */
+.challenge-counter {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a0d4c8;
+    -fx-padding: 10px 20px;
+    -fx-background-color: rgba(49, 65, 61, 0.9);
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+/* Menu Inicial Styles */
+.menu-button {
+    -fx-background-color: #a0d4c8;
+    -fx-text-fill: #31413d;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50;
+    -fx-border-radius: 50;
+    -fx-border-color: #31413d;
+    -fx-border-width: 2px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 3);
+    -fx-min-width: 200px;
+    -fx-min-height: 60px;
+}
+
+.menu-button:hover {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #a0d4c8;
+    -fx-border-color: #a0d4c8;
+    -fx-effect: dropshadow(gaussian, rgba(160, 212, 200, 0.6), 12, 0, 0, 5);
+}
+
+.menu-button:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 6, 0, 0, 1);
+}
+
+.menu-button-secondary {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #a0d4c8;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50;
+    -fx-border-radius: 50;
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 3);
+    -fx-min-width: 150px;
+    -fx-min-height: 50px;
+}
+
+.menu-button-secondary:hover {
+    -fx-background-color: #a0d4c8;
+    -fx-text-fill: #31413d;
+    -fx-border-color: #31413d;
+    -fx-effect: dropshadow(gaussian, rgba(160, 212, 200, 0.6), 12, 0, 0, 5);
+}
+
+/* Menu TextField */
+#ipInput {
+    -fx-background-color: #31413d;
+    -fx-text-fill: #e0e5e4;
+    -fx-prompt-text-fill: #99a6a3;
+    -fx-background-radius: 15;
+    -fx-border-color: #a0d4c8;
+    -fx-border-radius: 15;
+    -fx-border-width: 2px;
+    -fx-font-size: 16px;
+    -fx-padding: 15;
+}
+
+#ipInput:focused {
+    -fx-border-color: #a0d4c8;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(160, 212, 200, 0.4), 8, 0, 0, 2);
+}
+
+/* Progress Indicator no Menu */
+.progress-indicator {
+    -fx-progress-color: #a0d4c8;
+}
+
+/* Labels no Menu */
+#labelCarregando {
+    -fx-text-fill: #a0d4c8;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="br.edu.ifsp.pep.controller.MenuInicialController"
+           prefWidth="1366" prefHeight="768">
+
+    <!-- Background -->
+    <ImageView fitWidth="1366" fitHeight="768">
+        <Image url="@../images/background.png"/>
+    </ImageView>
+
+    <!-- Conteúdo Principal -->
+    <VBox alignment="TOP_CENTER" spacing="30">
+
+        <!-- Logo - será ocultada quando não estiver no menu principal -->
+        <ImageView fx:id="logoImage" fitWidth="440" fitHeight="440" preserveRatio="true" style="-fx-padding: 60 0 0 0;">
+            <Image url="@../images/icon.png"/>
+        </ImageView>
+
+        <!-- Botões Principais (Primeiro Nível de Navegação) -->
+        <VBox fx:id="menuPrincipal" alignment="CENTER" spacing="30" style="-fx-padding: 40 0 0 0;">
+            <HBox alignment="CENTER" spacing="80">
+                <Button fx:id="btnJogarSozinho" text="Jogar Sozinho" styleClass="menu-button"
+                        style="-fx-padding: 20 60 20 60;"/>
+                <Button fx:id="btnMultiplayer" text="Multiplayer" styleClass="menu-button"
+                        style="-fx-padding: 20 60 20 60;"/>
+            </HBox>
+        </VBox>
+
+        <!-- Menu Multiplayer (Segundo Nível de Navegação) -->
+        <VBox fx:id="menuMultiplayer" alignment="CENTER" spacing="30" visible="false" managed="false" style="-fx-padding: 180 0 0 0;">
+            <TextField fx:id="ipInput" promptText="Ex: AB3X7K" style="-fx-padding: 15; -fx-font-size: 16px; -fx-pref-width: 540; -fx-max-width: 540;"/>
+
+            <HBox alignment="CENTER" spacing="80">
+                <Button fx:id="btnEntrarSala" text="Entrar em Sala" styleClass="menu-button"
+                        style="-fx-padding: 20 60 20 60;" disable="true"/>
+                <Button fx:id="btnCriarSala" text="Criar Sala" styleClass="menu-button"
+                        style="-fx-padding: 20 60 20 60;"/>
+            </HBox>
+
+            <Button fx:id="btnVoltarMultiplayer" text="Voltar" styleClass="menu-button-secondary"
+                    style="-fx-padding: 15 40 15 40;"/>
+        </VBox>
+
+        <!-- Menu de Carregamento/Esperando -->
+        <VBox fx:id="menuCarregando" alignment="CENTER" spacing="30" visible="false" managed="false" style="-fx-padding: 180 0 0 0;">
+            <ProgressIndicator style="-fx-scale-x: 2; -fx-scale-y: 2;"/>
+            <Label fx:id="labelCarregando" text="Aguardando conexão..."
+                   style="-fx-font-size: 20px; -fx-text-fill: #a0d4c8; -fx-text-alignment: center;"/>
+            <Button fx:id="btnCancelarCarregamento" text="Cancelar" styleClass="menu-button-secondary"
+                    style="-fx-padding: 15 40 15 40;"/>
+        </VBox>
+
+    </VBox>
+
+</StackPane>
+
