@@ -15,6 +15,7 @@ import br.edu.ifsp.pep.utills.ChallengeOver;
 import br.edu.ifsp.pep.utills.ChallengeResult;
 import br.edu.ifsp.pep.utills.ChallengeSetup;
 import br.edu.ifsp.pep.utills.GuessResult;
+import br.edu.ifsp.pep.utills.GuessWithCard;
 import br.edu.ifsp.pep.model.Equipe;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
@@ -128,7 +129,7 @@ public class MainController {
             protected Boolean call() throws Exception {
                 try {
                     if (setup.mode() == GameMode.MULTIPLAYER_HOST) {
-                        updateMessage("Aguardando conexão no IP: " + setup.ipAddress());
+                        updateMessage("Aguardando conexão no Código: " + setup.roomCode());
                         networkManager.hostGame();
                     } else {
                         updateMessage("Conectando ao host: " + setup.ipAddress());
@@ -220,8 +221,41 @@ public class MainController {
             // O oponente respondeu, agora a vez é dele.
             gameManager.setMyTurn(false);
             uiManager.updateUIForTurnState(false, false); // Desabilita tudo
+        } else if (message instanceof GuessWithCard) {
+            // Recebe Palpite do Oponente com sua carta
+            GuessWithCard guessWithCard = (GuessWithCard) message;
+            Carta palpiteRecebido = guessWithCard.cartaPalpitada();
+            Carta cartaDoPalpitante = guessWithCard.cartaDoPalpitante();
+
+            uiManager.addSystemMessage("Oponente palpitou: " + palpiteRecebido.getNome());
+
+            // Verifica se o palpite está correto
+            boolean oponenteAcertou = gameManager.verificarPalpite(palpiteRecebido, false);
+
+            try {
+                // Envia o resultado junto com as cartas:
+                // suaCartaSecreta = sua carta (a do HOST que recebeu o palpite)
+                // cartaPalpitada = a carta que foi palpitada (a carta do CLIENT)
+                // cartaDoOponenteClient = a carta do CLIENT (que o HOST recebeu)
+                Carta minhaCartaSecreta = gameManager.getSuaEquipe().getCartaSecreta();
+                networkManager.send(new GuessResult(oponenteAcertou, minhaCartaSecreta, palpiteRecebido, cartaDoPalpitante));
+            } catch (Exception e) {
+                showAlert("Erro de Rede", "Não foi possível enviar o resultado do palpite.");
+            }
+
+            if (oponenteAcertou) {
+                // Oponente ACERTOU = Você PERDEU
+                // Deve mostrar a carta do OPONENTE (que ele palpitou corretamente)
+                Equipe equipeParaExibir = new Equipe("Equipe Oponente");
+                equipeParaExibir.setCartaSecreta(cartaDoPalpitante); // A carta que ele palpitou corretamente
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+            } else {
+                // Oponente ERROU = Você GANHOU
+                // Não precisa mostrar carta (vitória)
+                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
+            }
         } else if (message instanceof Carta) {
-            // Recebe Palpite do Oponente
+            // Recebe Palpite do Oponente (compatibilidade com versão anterior)
             Carta palpiteRecebido = (Carta) message;
             uiManager.addSystemMessage("Oponente palpitou: " + palpiteRecebido.getNome());
 
@@ -229,19 +263,21 @@ public class MainController {
             boolean oponenteAcertou = gameManager.verificarPalpite(palpiteRecebido, false);
 
             try { 
-                // Envia AMBAS as cartas secretas
+                // Envia o resultado junto com as cartas:
+                // suaCartaSecreta = sua carta (a do HOST que recebeu o palpite)
+                // cartaPalpitada = a carta que foi palpitada
+                // cartaDoOponenteClient = null (compatibilidade com versão anterior)
                 Carta minhaCartaSecreta = gameManager.getSuaEquipe().getCartaSecreta();
-                Carta cartaDoOponente = gameManager.getEquipeOponente().getCartaSecreta();
-                networkManager.send(new GuessResult(oponenteAcertou, minhaCartaSecreta, cartaDoOponente));
+                networkManager.send(new GuessResult(oponenteAcertou, minhaCartaSecreta, palpiteRecebido, palpiteRecebido));
             } catch (Exception e) {
                 showAlert("Erro de Rede", "Não foi possível enviar o resultado do palpite.");
             }
 
             if (oponenteAcertou) { 
                 // Oponente ACERTOU = Você PERDEU
-                // Deve mostrar a carta do OPONENTE (que ele descobriu)
+                // Deve mostrar a carta do OPONENTE (que ele descobriu corretamente)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
-                equipeParaExibir.setCartaSecreta(gameManager.getEquipeOponente().getCartaSecreta());
+                equipeParaExibir.setCartaSecreta(palpiteRecebido); // A carta que ele palpitou corretamente
                 uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
             } else { 
                 // Oponente ERROU = Você GANHOU
@@ -251,19 +287,26 @@ public class MainController {
         } else if (message instanceof GuessResult) {
             GuessResult resultado = (GuessResult) message;
             
-            // Atualiza ambas as cartas com os valores reais
-            gameManager.getEquipeOponente().setCartaSecreta(resultado.cartaDoJogadorQueRecebeuPalpite());
-            gameManager.getSuaEquipe().setCartaSecreta(resultado.cartaDoJogadorQuePalpitou());
-            
-            if (resultado.correto()) { 
+            // Sincroniza as cartas com os valores reais
+            // suaCartaSecreta = carta do HOST (oponente do CLIENT)
+            // cartaPalpitada = a carta que o CLIENT palpitou
+            // cartaDoOponenteClient = a carta real do CLIENT
+            gameManager.getEquipeOponente().setCartaSecreta(resultado.suaCartaSecreta());
+
+            // A carta que será exibida é a carta que foi palpitada (ou a correta do oponente)
+            Carta cartaParaExibir = resultado.suaCartaSecreta();
+
+            if (resultado.correto()) {
                 // Você ACERTOU = Você GANHOU
-                // Não precisa mostrar carta (vitória)
-                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
-            } else { 
-                // Você ERROU = Você PERDEU
-                // Deve mostrar a carta CORRETA do oponente (que você não descobriu)
+                // Mostra a carta que palpitou corretamente (que era a carta do HOST)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
-                equipeParaExibir.setCartaSecreta(gameManager.getEquipeOponente().getCartaSecreta());
+                equipeParaExibir.setCartaSecreta(cartaParaExibir);
+                uiManager.exibirFimDeJogo(true, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+            } else {
+                // Você ERROU = Você PERDEU
+                // Mostra a carta que você palpitou (a que você achou que era do oponente)
+                Equipe equipeParaExibir = new Equipe("Equipe Oponente");
+                equipeParaExibir.setCartaSecreta(cartaParaExibir);
                 uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
             }
         } else if (message instanceof ChallengeSetup setup) {
@@ -361,7 +404,9 @@ public class MainController {
                         } else {
                             // Lógica para Multiplayer (Rede)
                             try {
-                                networkManager.send(palpite);
+                                // Envia o palpite junto com a carta do palpitante
+                                Carta minhaCarta = gameManager.getSuaEquipe().getCartaSecreta();
+                                networkManager.send(new GuessWithCard(palpite, minhaCarta));
                                 uiManager.addSystemMessage("Palpite enviado! Aguardando resultado...");
                                 uiManager.addSystemMessage("Você palpitou: " + palpite.getNome());
                             } catch (Exception ex) {

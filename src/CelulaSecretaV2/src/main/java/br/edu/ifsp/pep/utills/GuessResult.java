@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 public record GuessResult(
     boolean correto,
-    Carta cartaDoJogadorQueRecebeuPalpite,  // Carta do jogador que foi alvo do palpite
-    Carta cartaDoJogadorQuePalpitou          // Carta do jogador que fez o palpite
+    Carta suaCartaSecreta,           // A carta secreta de quem recebeu o palpite (HOST)
+    Carta cartaPalpitada,            // A carta que foi palpitada pelo CLIENT
+    Carta cartaDoOponenteClient      // A carta do CLIENT (para o HOST saber qual era)
 ) implements Serializable { }

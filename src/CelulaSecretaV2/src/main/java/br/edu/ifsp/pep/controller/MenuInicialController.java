@@ -93,7 +93,7 @@ public class MenuInicialController {
     }
 
     private void startSinglePlayer() {
-        GameSetup setup = new GameSetup(GameMode.SINGLE_PLAYER, null);
+        GameSetup setup = new GameSetup(GameMode.SINGLE_PLAYER, null, null);
         if (setupListener != null) {
             setupListener.onGameSetupComplete(setup);
         }
@@ -124,7 +124,7 @@ public class MenuInicialController {
                     throw new Exception("Sala não encontrada na rede");
                 }
 
-                return new GameSetup(GameMode.MULTIPLAYER_CLIENT, hostIp);
+                return new GameSetup(GameMode.MULTIPLAYER_CLIENT, hostIp, roomCode);
             }
         };
 
@@ -156,17 +156,17 @@ public class MenuInicialController {
                     // Inicia o anúncio da sala na rede
                     RoomServer.startBroadcastingRoom(roomCode, localIp);
 
-                    Platform.runLater(() -> {
-                        Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
-                        infoAlert.setTitle("Sala Criada!");
-                        infoAlert.setHeaderText("Compartilhe este código com o outro jogador:");
-                        infoAlert.setContentText(roomCode);
-                        infoAlert.showAndWait();
-                    });
+//                    Platform.runLater(() -> {
+//                        Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+//                        infoAlert.setTitle("Sala Criada!");
+//                        infoAlert.setHeaderText("Compartilhe este código com o outro jogador:");
+//                        infoAlert.setContentText(roomCode);
+//                        infoAlert.showAndWait();
+//                    });
 
-                    return new GameSetup(GameMode.MULTIPLAYER_HOST, localIp);
+                    return new GameSetup(GameMode.MULTIPLAYER_HOST, localIp, roomCode);
                 } catch (Exception e) {
-                    return new GameSetup(GameMode.MULTIPLAYER_HOST, "127.0.0.1");
+                    return new GameSetup(GameMode.MULTIPLAYER_HOST, "127.0.0.1", "XXXXXX");
                 }
             }
         };
