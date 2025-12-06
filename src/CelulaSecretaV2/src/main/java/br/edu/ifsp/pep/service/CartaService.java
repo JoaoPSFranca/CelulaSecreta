@@ -100,7 +100,7 @@ public class CartaService {
                 List.of("Ciclo de vida complexo"),
                 List.of("roptria", "citoplasma", "mitocôndria", "apicoplasto", "retículo endoplasmático", "núcleo", "complexo golgiense", "grânulos densos")));
 
-        cartas.add(new Carta(17, "Trypanosoma cruzi", "Trypanosoma_Cruzi", "Protozoário flagelado causador da Doença de Chagas.", false, 3, protista,
+        cartas.add(new Carta(17, "Trypanosoma cruzi", "Trypanosoma_cruzi", "Protozoário flagelado causador da Doença de Chagas.", false, 3, protista,
                 List.of("Eucarionte", "Unicelular", "Móvel", "Parasita"),
                 List.of("Locomoção"),
                 List.of("mitocôndria", "ribossomo", "retículo", "membrana ondulatória", "membrana nuclear", "dna", "complexo golgiense", "vacúolo", "flagelo", "núcleo")));
