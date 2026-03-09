@@ -1,0 +1,38 @@
+Gerais
+A célula possui mitocôndria?
+A célula possui Complexo Golgiense?
+A célula possui Citoplasma?
+A célula possui Ribossomo?
+A célula possui DNA representado?
+A célula possui Retículo?
+A célula possui Vacúolo?
+A célula possui Núcleo definido?
+A célula possui Membrana Celular?
+A célula possui Membrana Nuclear?
+A célula possui Parede Celular?
+A célula possui Membrana Plasmática?
+A célula possui Cloroplasto?
+A célula possui Lisossomo?
+A célula possui Nucléolo?
+A célula possui Microvilosidades?
+A célula possui Plasmídio?
+
+Específicas
+A célula possui Cílios? - Paramecio
+A célula possui Roptria? - Plasmodium vívax
+A célula produz insulina? - Celula b pancreática
+A célula possui Axônio e Dendritos? - Neurônio
+A célula possui Broto? - Candida albicans 
+A célula possui Centríolo e Citoesqueleto representados? - Célula Animal
+A célula possui Ostíolo e Epiderme? - Célula Guarda
+A célula possui Esporos? - Rhizopus sp
+A célula possui Fímbria? - Escherichia coli
+A célula possui Grão de Amidos e Pirenoide? - Chlamydomonas sp
+A célula possui Flagelo Axial? - Treponema paliddum
+A célula possui Glicocálice? - Streptococcus sp
+A célula possui Gotículas Lipídicas? - Célula de Leydig
+A célula possui Núcleo em formato de ferradura? - Neutrófilo
+A célula possui Membrana Ondulatória? - Trypanosoma cruzi
+A célula possui Pseudópode? - Macrófogo
+A célula possui Reserva de Gordura? - Adipócito
+A célula possui Vesícula Secretora? - Célula Calciforme
