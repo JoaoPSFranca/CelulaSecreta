@@ -157,14 +157,14 @@ public class ChallengeService {
         ));
 
         desafios.add(new ChallengeItem(23,
-                "Onde ocorre a transcrição do DNA em RNA?",
+                "Onde ocorre a transcrição do DNA em RNA nas células eucarióticas?",
                 "Núcleo",
                 List.of("Ribossomo", "Citoplasma", "Núcleo", "Complexo de Golgi")
         ));
 
         desafios.add(new ChallengeItem(24,
                 "Qual estrutura é responsável pela formação dos ribossomos?",
-                "Núcleo",
+                "Nucléolo",
                 List.of("Nucléolo", "Núcleo", "Retículo Endoplasmático", "Complexo de Golgi")
         ));
 

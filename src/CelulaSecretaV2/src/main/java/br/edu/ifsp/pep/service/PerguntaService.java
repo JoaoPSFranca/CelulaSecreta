@@ -27,8 +27,6 @@ public class PerguntaService {
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("nucleo") || o.contains("membrana_nuclear"))));
         perguntas.add(new Pergunta(id++, "Possui Mitocôndria?",
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("mitocondria"))));
-        perguntas.add(new Pergunta(id++, "Possui Ribossomos?",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("ribossomo"))));
         perguntas.add(new Pergunta(id++, "Possui Complexo Golgiense?",
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("complexo_golgiense"))));
         perguntas.add(new Pergunta(id++, "Possui Membrana Plasmática?",
@@ -37,8 +35,6 @@ public class PerguntaService {
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("membrana_celular"))));
         perguntas.add(new Pergunta(id++, "Possui Parede Celular?",
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("parede_celular"))));
-        perguntas.add(new Pergunta(id++, "Possui DNA aparente? (Está representado na imagem?)",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("dna"))));
         perguntas.add(new Pergunta(id++, "Possui Retículo representado?",
                 carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("reticulo"))));
         perguntas.add(new Pergunta(id++, "Possui Vacúolo?",
