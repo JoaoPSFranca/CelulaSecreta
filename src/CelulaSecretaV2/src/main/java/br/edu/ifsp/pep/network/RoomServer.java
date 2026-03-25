@@ -4,6 +4,10 @@ import java.net.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Gerencia as salas de jogo na rede local.
@@ -13,7 +17,9 @@ import java.util.Map;
 public class RoomServer {
 
     private static final int BROADCAST_PORT = 54322;
-    private static volatile Map<String, String> activeRooms = new HashMap<>();
+    private static final Map<String, String> activeRooms = new ConcurrentHashMap<>();
+    private static volatile boolean broadcasting = true;
+    private static Thread broadcasterThread;
 
     /**
      * Inicia um servidor que anuncia a sala na rede local
@@ -21,7 +27,7 @@ public class RoomServer {
      * @param hostIp O IP do host
      */
     public static void startBroadcastingRoom(String roomCode, String hostIp) {
-        Thread broadcasterThread = new Thread(() -> {
+        broadcasterThread = new Thread(() -> {
             try {
                 DatagramSocket socket = new DatagramSocket();
                 socket.setBroadcast(true);
@@ -30,9 +36,30 @@ public class RoomServer {
                 byte[] data = message.getBytes();
 
                 // Envia o anúncio a cada 2 segundos
-                while (!Thread.currentThread().isInterrupted()) {
+                while (broadcasting) {
                     try {
-                        InetAddress broadcastAddress = InetAddress.getByName("255.255.255.255");
+                        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+                        while (interfaces.hasMoreElements()) {
+                            NetworkInterface networkInterface = interfaces.nextElement();
+
+                            if (!networkInterface.isUp() || networkInterface.isLoopback()) continue;
+
+                            for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
+                                InetAddress broadcast = interfaceAddress.getBroadcast();
+                                if (broadcast == null) continue;
+
+                                DatagramPacket packet = new DatagramPacket(
+                                    data,
+                                    data.length,
+                                    broadcast,
+                                    BROADCAST_PORT
+                                );
+
+                                socket.send(packet);
+                            }
+                        }
+
                         DatagramPacket packet = new DatagramPacket(
                             data,
                             data.length,
@@ -42,8 +69,8 @@ public class RoomServer {
                         socket.send(packet);
 
                         activeRooms.put(roomCode, hostIp);
-
                         Thread.sleep(2000);
+                        stopBroadcastingRoom();
                     } catch (Exception e) {
                         // Continua tentando
                     }
@@ -66,6 +93,9 @@ public class RoomServer {
      * @return O IP do host, ou null se não encontrar
      */
     public static String discoverHostByCode(String roomCode) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<String> result = new AtomicReference<>();
+
         Thread listenerThread = new Thread(() -> {
             try {
                 DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
@@ -82,10 +112,16 @@ public class RoomServer {
                         String message = new String(packet.getData(), 0, packet.getLength());
                         String[] parts = message.split(":");
 
-                        if (parts.length == 2) {
+                        if (parts.length == 2 && parts[0].matches("[A-Z0-9]{6}")) {
                             String code = parts[0];
                             String ip = parts[1];
+
                             activeRooms.put(code, ip);
+
+                            if (code.equals(roomCode)) {
+                                result.set(ip);
+                                latch.countDown();
+                            }
                         }
                     } catch (SocketTimeoutException e) {
                         break;
@@ -100,27 +136,17 @@ public class RoomServer {
 
         listenerThread.start();
 
-        // Aguarda a descoberta
-        long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < 10000) {
-            if (activeRooms.containsKey(roomCode)) {
-                return activeRooms.get(roomCode);
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
+        if (latch.await(10, TimeUnit.SECONDS)) {
+            return result.get();
         }
+        return null;
+        
+    }
 
-        try {
-            listenerThread.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    public static void stopBroadcastingRoom() {
+        if (broadcasterThread != null && broadcasterThread.isAlive()) {
+            broadcasterThread.interrupt();
         }
-
-        return activeRooms.getOrDefault(roomCode, null);
     }
 
     /**

@@ -33,7 +33,8 @@ public class NetworkManager {
     // Metodo para o Cliente: conecta a um servidor existente
     public void joinGame(String ipAddress) throws Exception {
         System.out.println("Modo Cliente: Conectando ao host " + ipAddress + "...");
-        this.socket = new Socket(ipAddress, PORT);
+        this.socket = new Socket();
+        this.socket.connect(new InetSocketAddress(ipAddress, PORT), 5000);
         System.out.println("Conectado com sucesso!");
         initializeStreams();
     }
