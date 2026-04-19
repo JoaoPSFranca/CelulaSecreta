@@ -358,6 +358,7 @@ public class UIManager {
 
     public void exibirPerguntaDesafio(ChallengeItem item, Consumer<String> onOpcaoSelecionada) {
         labelPerguntaDesafio.setText(item.pergunta());
+        labelPerguntaDesafio.setWrapText(true); // Permite quebra de linha na pergunta também
         gridOpcoesDesafio.getChildren().clear(); // Limpa opções anteriores
 
         if (item.opcoes() == null || item.opcoes().size() != 4) {
@@ -370,8 +371,10 @@ public class UIManager {
             for (int col = 0; col < 2; col++) {
                 String opcaoTexto = item.opcoes().get(index++);
                 Button opcaoBtn = new Button(opcaoTexto);
-                opcaoBtn.getStyleClass().add("challenge-option-button"); // (Podemos estilizar isso no CSS depois)
+                opcaoBtn.getStyleClass().add("challenge-option-button");
                 opcaoBtn.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                opcaoBtn.setWrapText(true); // Habilita quebra de linha no texto do botão
+                opcaoBtn.setTextAlignment(javafx.scene.text.TextAlignment.CENTER); // Centraliza o texto
 
                 // Define a ação do botão para chamar o callback
                 opcaoBtn.setOnAction(e -> onOpcaoSelecionada.accept(opcaoTexto));

@@ -2,7 +2,6 @@ package br.edu.ifsp.pep.network;
 
 import java.net.*;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -39,9 +38,10 @@ public class RoomServer {
                 while (broadcasting) {
                     try {
                         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+                        NetworkInterface networkInterface = null;
 
                         while (interfaces.hasMoreElements()) {
-                            NetworkInterface networkInterface = interfaces.nextElement();
+                            networkInterface = interfaces.nextElement();
 
                             if (!networkInterface.isUp() || networkInterface.isLoopback()) continue;
 
@@ -59,14 +59,6 @@ public class RoomServer {
                                 socket.send(packet);
                             }
                         }
-
-                        DatagramPacket packet = new DatagramPacket(
-                            data,
-                            data.length,
-                            broadcastAddress,
-                            BROADCAST_PORT
-                        );
-                        socket.send(packet);
 
                         activeRooms.put(roomCode, hostIp);
                         Thread.sleep(2000);
@@ -136,8 +128,12 @@ public class RoomServer {
 
         listenerThread.start();
 
-        if (latch.await(10, TimeUnit.SECONDS)) {
-            return result.get();
+        try {
+            if (latch.await(10, TimeUnit.SECONDS)) {
+                return result.get();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         return null;
         

@@ -62,7 +62,8 @@ public class PerguntaService {
 
         // Célula Animal
         perguntas.add(new Pergunta(id++, "A Célula possui Centríolo e Citoesqueleto representados?",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("centriolo") && o.contains("citoesqueleto"))));
+                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("centriolo")) &&
+                        carta.getOrganelas().stream().anyMatch(o -> o.contains("citoesqueleto"))));
 
         // Célula b Pancreática
         perguntas.add(new Pergunta(id++, "A Célula produz Insulina?",
@@ -78,11 +79,13 @@ public class PerguntaService {
 
         // Célula Guarda
         perguntas.add(new Pergunta(id++, "A Célula possui Ostíolo e Epiderme?",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("ostiolo") && o.contains("epiderme"))));
+                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("ostiolo")) &&
+                        carta.getOrganelas().stream().anyMatch(o -> o.contains("epiderme"))));
 
         // Chlamydomonas sp
         perguntas.add(new Pergunta(id++, "A Célula possui Pirenoide e Grãos de Amido?",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("pirenoide") && o.contains("graos_de_amido"))));
+                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("pirenoide")) &&
+                        carta.getOrganelas().stream().anyMatch(o -> o.contains("graos_de_amido"))));
 
         // Escherichia coli
         perguntas.add(new Pergunta(id++, "A Célula possui Fímbria?",
@@ -94,7 +97,8 @@ public class PerguntaService {
 
         // Neurônio
         perguntas.add(new Pergunta(id++, "A Célula possui Axônio e Dendritos?",
-                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("axonio") && o.contains("dendritos"))));
+                carta -> carta.getOrganelas().stream().anyMatch(o -> o.contains("axonio")) &&
+                        carta.getOrganelas().stream().anyMatch(o -> o.contains("dendritos"))));
 
         // Neutrofilo
         perguntas.add(new Pergunta(id++, "A Célula possui um núcleo em formato de ferradura?",

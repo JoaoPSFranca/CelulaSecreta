@@ -6,14 +6,16 @@
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-padding: 15px;
+    -fx-padding: 12px;
     -fx-cursor: hand;
     -fx-transition: all 0.2s ease-in-out;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
     -fx-text-alignment: center;
-    -fx-wrapText: true;
+    -fx-wrap-text: true;
+    -fx-text-overrun: clip;
+    -fx-min-height: 80px;
 }
 
 .challenge-option-button:hover {
