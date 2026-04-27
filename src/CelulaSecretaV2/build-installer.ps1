@@ -47,7 +47,6 @@ Write-Host "Step 3: Gerando instalador EXE..." -ForegroundColor Cyan
    --win-shortcut `
    --win-dir-chooser `
    --win-per-user-install `
-   --win-console false `
    --win-menu `
    --dest "$DestinationPath" `
    --verbose
@@ -60,36 +59,70 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Instalador gerado com sucesso!" -ForegroundColor Green
 Write-Host ""
 
-# Step 4: Assinar código (opcional)
+# Step 4: Assinar código (IMPORTANTE para MSI)
 if ($CertificatePath -and (Test-Path $CertificatePath)) {
-    Write-Host "Step 4: Assinando o executável..." -ForegroundColor Cyan
+    Write-Host "Step 4: Assinando o instalador..." -ForegroundColor Cyan
 
     $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe"
 
-    if (Test-Path $signtoolPath) {
-        $exePath = Get-ChildItem -Path $DestinationPath -Filter "*.exe" -Recurse | Select-Object -First 1
+    if (-not (Test-Path $signtoolPath)) {
+        # Tenta encontrar em outro caminho
+        $signtoolPath = Get-Command signtool.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+    }
 
-        if ($exePath) {
+    if (Test-Path $signtoolPath) {
+        # Assinar MSI
+        $msiPath = Get-ChildItem -Path $DestinationPath -Filter "*.msi" -Recurse | Select-Object -First 1
+        if ($msiPath) {
+            Write-Host "  Assinando MSI: $($msiPath.Name)" -ForegroundColor Cyan
             & "$signtoolPath" sign `
                 /f "$CertificatePath" `
                 /p "$CertificatePassword" `
                 /t "http://timestamp.sectigo.com" `
                 /fd sha256 `
+                /d "CelulaSecreta Game Installer" `
+                /du "https://github.com/seu-usuario/CelulaSecreta" `
+                "$($msiPath.FullName)"
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "  ✓ MSI assinado com sucesso!" -ForegroundColor Green
+            } else {
+                Write-Host "  ✗ Aviso: Falha ao assinar MSI" -ForegroundColor Yellow
+            }
+        }
+
+        # Assinar EXE também
+        $exePath = Get-ChildItem -Path $DestinationPath -Filter "*.exe" -Recurse | Select-Object -First 1
+        if ($exePath) {
+            Write-Host "  Assinando EXE: $($exePath.Name)" -ForegroundColor Cyan
+            & "$signtoolPath" sign `
+                /f "$CertificatePath" `
+                /p "$CertificatePassword" `
+                /t "http://timestamp.sectigo.com" `
+                /fd sha256 `
+                /d "CelulaSecreta Game" `
+                /du "https://github.com/seu-usuario/CelulaSecreta" `
                 "$($exePath.FullName)"
 
             if ($LASTEXITCODE -eq 0) {
-                Write-Host "Executável assinado com sucesso!" -ForegroundColor Green
+                Write-Host "  ✓ EXE assinado com sucesso!" -ForegroundColor Green
             } else {
-                Write-Host "Aviso: Falha ao assinar o executável" -ForegroundColor Yellow
+                Write-Host "  ✗ Aviso: Falha ao assinar EXE" -ForegroundColor Yellow
             }
         }
     } else {
-        Write-Host "signtool.exe não encontrado. Pulando assinatura." -ForegroundColor Yellow
+        Write-Host "✗ signtool.exe não encontrado!" -ForegroundColor Red
+        Write-Host "  Instale Windows SDK em: https://developer.microsoft.com/windows/downloads/windows-sdk/" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "Step 4: Assinatura não configurada (opcional)" -ForegroundColor Yellow
-    Write-Host "Para assinar o executável, execute com parâmetros:" -ForegroundColor Yellow
-    Write-Host ".\build-installer.ps1 -CertificatePath 'C:\seu_certificado.pfx' -CertificatePassword 'sua_senha'" -ForegroundColor Yellow
+    Write-Host "Step 4: ⚠️  Assinatura não configurada" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "AVISO: Seu instalador será bloqueado pelo Windows SmartScreen!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Para assinar o instalador execute:" -ForegroundColor Cyan
+    Write-Host "  1. Criar certificado (execute CreateCertificate.ps1)" -ForegroundColor White
+    Write-Host "  2. Assinar: .\build-installer.ps1 -CertificatePath 'C:\Certs\CelulaSecreta.pfx' -CertificatePassword 'sua_senha'" -ForegroundColor White
+    Write-Host ""
 }
 
 Write-Host ""
