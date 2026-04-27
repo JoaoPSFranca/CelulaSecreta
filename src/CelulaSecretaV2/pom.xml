@@ -17,9 +17,10 @@
         <javafx.version>21</javafx.version>
 
         <app.name>CelulaSecreta</app.name>
-        <app.version>1.0.0</app.version>
+        <app.version>4.2.0</app.version>
         <main.class>br.edu.ifsp.pep.App</main.class>
         <jlink.imageName>app</jlink.imageName>
+        <vendor.name>JotaPe</vendor.name>
     </properties>
 
     <dependencies>
@@ -105,9 +106,7 @@
                     <type>IMAGE</type> <!-- MUST BE MAIÚSCULAS -->
                     <runtimeimage>${project.build.directory}/${jlink.imageName}</runtimeimage>
                     <appversion>${app.version}</appversion>
-                    <vendor>SeuNome</vendor>
-                    <main-jar>${project.build.finalName}.jar</main-jar>
-                    <main-class>${main.class}</main-class>
+                    <vendor>${vendor.name}</vendor>
                 </configuration>
                 <executions>
                     <execution>

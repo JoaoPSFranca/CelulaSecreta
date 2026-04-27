@@ -800,4 +800,35 @@ public class MainController {
     private void sairDoJogo() {
         System.exit(0);
     }
+
+    /**
+     * Limpa recursos da aplicação (conexões de rede, threads, etc)
+     * Chamado quando a aplicação está sendo encerrada
+     */
+    public void cleanup() {
+        System.out.println("Limpando recursos do MainController...");
+
+        // Parar o desafio timer se estiver rodando
+        if (challengeTimer != null) {
+            challengeTimer.stop();
+        }
+
+        // Encerrar a conexão de rede de forma segura
+        if (networkManager != null) {
+            try {
+                networkManager.shutdown();
+            } catch (Exception e) {
+                System.err.println("Erro ao encerrar NetworkManager: " + e.getMessage());
+            }
+        }
+
+        // Encerrar RoomServer
+        try {
+            RoomServer.shutdown();
+        } catch (Exception e) {
+            System.err.println("Erro ao encerrar RoomServer: " + e.getMessage());
+        }
+
+        System.out.println("MainController limpo com sucesso.");
+    }
 }

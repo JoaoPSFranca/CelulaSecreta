@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: Maven
+Implementation-Title: CelulaSecreta
+Implementation-Version: 4.2.0
+Implementation-Vendor: JotaPe
+Bundle-Name: CelulaSecreta
+Bundle-Version: 4.2.0
+Multi-Release: true
+
