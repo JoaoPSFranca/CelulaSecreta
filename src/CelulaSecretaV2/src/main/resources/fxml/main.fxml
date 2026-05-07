@@ -64,6 +64,10 @@
 
                 <Button fx:id="btnPalpitar" id="btnPalpitar" text="Palpitar"/>
                 <Button fx:id="btnPerguntar" id="btnPerguntar" text="Fazer Pergunta"/>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <Button fx:id="btnSairFase1" text="Sair da Partida" styleClass="menu-button-secondary" style="-fx-padding: 10 20 10 20;"/>
             </VBox>
         </right>
     </BorderPane>
@@ -79,6 +83,7 @@
         <children>
             <ProgressIndicator />
             <Label fx:id="loadingLabel" style="-fx-text-fill: white; -fx-font-size: 18px;" text="Estabelecendo conexão..." />
+            <Button fx:id="btnCancelarConexao" text="Cancelar" styleClass="menu-button-secondary" style="-fx-padding: 15 40 15 40;"/>
         </children>
     </VBox>
 
@@ -89,12 +94,13 @@
             <Insets top="30" right="50" bottom="50" left="50"/>
         </padding>
 
-        <!-- Cabeçalho com Título e Contador -->
+        <!-- Cabeçalho com Título, Contador e Botão Cancelar -->
         <HBox alignment="CENTER" spacing="20">
             <Region HBox.hgrow="ALWAYS"/>
             <Label text="Desafio de Velocidade!" style="-fx-font-size: 32px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="labelContador" styleClass="challenge-counter" text="1/10"/>
+            <Button fx:id="btnCancelarDesafio" text="Sair" styleClass="menu-button-secondary" style="-fx-padding: 10 25 10 25;" visible="false" managed="false"/>
         </HBox>
 
         <Label fx:id="labelTimer" text="Tempo: 00:00" style="-fx-font-size: 24px; -fx-text-fill: #e0e5e4;"/>

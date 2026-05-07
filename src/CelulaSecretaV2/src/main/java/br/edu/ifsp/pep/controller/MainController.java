@@ -47,11 +47,15 @@ public class MainController {
     @FXML private ImageView zoomCartaImageView;
     @FXML private VBox loadingOverlay;
     @FXML private Label loadingLabel;
+    @FXML private Button btnCancelarConexao;
     @FXML private VBox painelDesafio;
     @FXML private Label labelTimer;
     @FXML private Label labelPerguntaDesafio;
     @FXML private Label labelContador;
     @FXML private GridPane gridOpcoesDesafio;
+    @FXML private Button btnCancelarDesafio;
+    @FXML private Button btnSairFase1;
+    @FXML private TextField codigoSala;
 
     // --- Módulos Principais ---
     private GameManager gameManager;
@@ -92,7 +96,14 @@ public class MainController {
         this.challengeService = new ChallengeService();
         this.uiManager = new UIManager(rootPane, cardGrid, chatBox, chatScroll, suaCartaImage,
                 btnPerguntar, btnPalpitar, btnSim, btnNao, zoomContainer, zoomCartaImageView,
-                painelDesafio, labelTimer, labelPerguntaDesafio, gridOpcoesDesafio, labelContador);
+                painelDesafio, labelTimer, labelPerguntaDesafio, gridOpcoesDesafio, labelContador,
+                btnCancelarDesafio, this::cancelarEspera);
+
+        // Configurar botão de cancelar conexão
+        btnCancelarConexao.setOnAction(e -> cancelarConexao());
+
+        // Configurar botão de cancelar desafio
+        btnCancelarDesafio.setOnAction(e -> cancelarDesafio());
 
         switch (gameMode) {
             case SINGLE_PLAYER:
@@ -117,6 +128,8 @@ public class MainController {
         btnNao.setOnAction(this::onNao);
         btnPerguntar.setOnAction(this::onPerguntar);
         btnPalpitar.setOnAction(this::onPalpitar);
+        btnSairFase1.setOnAction(e -> sairDoJogo());
+        codigoSala.setText(setup.roomCode());
     }
 
     private void setupNetworkGame(GameSetup setup) {
@@ -713,18 +726,21 @@ public class MainController {
             challengeTimer.stop();
         }
 
-        // 2. Calcular tempo final
+        // 2. Esconder o botão de cancelar
+        uiManager.esconderBotaoCancelarDesafio();
+
+        // 3. Calcular tempo final
         long elapsedMillis = System.currentTimeMillis() - desafioStartTime;
         double tempoTotalSegundos = elapsedMillis / 1000.0;
         String tempoFormatado = labelTimer.getText().replace("Tempo: ", "");
 
-        // 3. Salvar meu resultado (ATUALIZADO com a lista de respostas)
+        // 4. Salvar meu resultado (ATUALIZADO com a lista de respostas)
         this.myChallengeResult = new ChallengeResult(desafioAcertos, tempoTotalSegundos, desafioRespostas);
 
-        // 4. Exibir o placar local (sem botão de fechar)
+        // 5. Exibir o placar local (sem botão de fechar)
         uiManager.exibirFimDesafio(desafioAcertos, listaDesafio.size(), tempoFormatado, desafioRespostas);
 
-        // 5. Lógica de Fim de Jogo
+        // 6. Lógica de Fim de Jogo
         if (gameMode == GameMode.SINGLE_PLAYER) {
             // No single player, o resultado final é imediato
             uiManager.exibirResultadoFinal("Bom trabalho!", this::sairDoJogo);
@@ -799,6 +815,40 @@ public class MainController {
 
     private void sairDoJogo() {
         System.exit(0);
+    }
+
+    /**
+     * Cancela a espera (aguardando conexão, cliente, etc) e sai do jogo
+     */
+    private void cancelarEspera() {
+        System.out.println("Cancelando espera...");
+        sairDoJogo();
+    }
+
+    /**
+     * Cancela a conexão de rede durante o carregamento inicial
+     */
+    private void cancelarConexao() {
+        System.out.println("Cancelando conexão...");
+        loadingOverlay.setVisible(false);
+        sairDoJogo();
+    }
+
+    /**
+     * Cancela o desafio (Fase 2) e sai do jogo
+     */
+    private void cancelarDesafio() {
+        System.out.println("Cancelando desafio...");
+        // Para o cronômetro se estiver rodando
+        if (challengeTimer != null) {
+            challengeTimer.stop();
+        }
+        // Fecha o painel de desafio
+        painelDesafio.setVisible(false);
+        painelDesafio.setManaged(false);
+        btnCancelarDesafio.setVisible(false);
+        btnCancelarDesafio.setManaged(false);
+        sairDoJogo();
     }
 
     /**

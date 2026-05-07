@@ -34,10 +34,15 @@ public class UIManager {
     private final Label labelPerguntaDesafio;
     private final Label labelContador;
     private final GridPane gridOpcoesDesafio;
+    private final Button btnCancelarDesafio;
+    private final Runnable onCancelarEspera;
 
     public UIManager(StackPane rootPane, GridPane cardGrid, VBox chatBox, ScrollPane chatScroll,
                      ImageView suaCartaImage, Button btnPerguntar, Button btnPalpitar,
-                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView, VBox painelDesafio, Label labelTimer, Label labelPerguntaDesafio, GridPane gridOpcoesDesafio, Label labelContador) {
+                     Button btnSim, Button btnNao, VBox zoomContainer, ImageView zoomCartaImageView,
+                     VBox painelDesafio, Label labelTimer, Label labelPerguntaDesafio,
+                     GridPane gridOpcoesDesafio, Label labelContador, Button btnCancelarDesafio,
+                     Runnable onCancelarEspera) {
         this.rootPane = rootPane;
         this.cardGrid = cardGrid;
         this.chatBox = chatBox;
@@ -54,6 +59,8 @@ public class UIManager {
         this.labelPerguntaDesafio = labelPerguntaDesafio;
         this.gridOpcoesDesafio = gridOpcoesDesafio;
         this.labelContador = labelContador;
+        this.btnCancelarDesafio = btnCancelarDesafio;
+        this.onCancelarEspera = onCancelarEspera;
         this.imagemVerso = new Image(getClass().getResource("/images/verso.png").toExternalForm());
 
         this.chatBox.heightProperty().addListener((obs, oldHeight, newHeight) -> {
@@ -354,6 +361,15 @@ public class UIManager {
         // Mostra a Fase 2
         painelDesafio.setVisible(true);
         painelDesafio.setManaged(true);
+
+        // Mostra o botão de cancelar
+        btnCancelarDesafio.setVisible(true);
+        btnCancelarDesafio.setManaged(true);
+    }
+
+    public void esconderBotaoCancelarDesafio() {
+        btnCancelarDesafio.setVisible(false);
+        btnCancelarDesafio.setManaged(false);
     }
 
     public void exibirPerguntaDesafio(ChallengeItem item, Consumer<String> onOpcaoSelecionada) {
@@ -421,7 +437,7 @@ public class UIManager {
         feedbackBox.setAlignment(Pos.CENTER);
         
         for (Boolean acertou : respostas) {
-            Label iconLabel = new Label(acertou ? "✅" : "❌");
+            Label iconLabel = new Label(acertou ? "✓" : "❌");
             iconLabel.setStyle("-fx-font-size: 24px;");
             feedbackBox.getChildren().add(iconLabel);
         }
@@ -461,7 +477,15 @@ public class UIManager {
         label.setStyle("-fx-text-fill: white; -fx-font-size: 18px;");
         ProgressIndicator pi = new ProgressIndicator();
 
-        aguardandoPane.getChildren().addAll(label, pi);
+        Button btnCancelar = new Button("Cancelar");
+        btnCancelar.getStyleClass().add("menu-button-secondary");
+        btnCancelar.setStyle("-fx-padding: 10 30 10 30;");
+        btnCancelar.setOnAction(e -> {
+            rootPane.getChildren().remove(aguardandoPane);
+            onCancelarEspera.run();
+        });
+
+        aguardandoPane.getChildren().addAll(label, pi, btnCancelar);
         rootPane.getChildren().add(aguardandoPane);
     }
 
