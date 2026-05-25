@@ -29,6 +29,8 @@
                 <Button fx:id="btnMultiplayer" text="Multiplayer" styleClass="menu-button"
                         style="-fx-padding: 20 60 20 60;"/>
             </HBox>
+            <Button fx:id="btnSairAplicacao" text="Sair" styleClass="menu-button-secondary"
+                    style="-fx-padding: 15 40 15 40; -fx-margin: 40 0 0 0;"/>
         </VBox>
 
         <!-- Menu Multiplayer (Segundo Nível de Navegação) -->

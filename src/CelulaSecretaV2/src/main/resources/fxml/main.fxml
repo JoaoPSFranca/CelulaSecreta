@@ -47,25 +47,25 @@
 
         <!-- Informacoes e botoes da equipe -->
         <right>
-            <VBox spacing="20" alignment="TOP_CENTER">
+            <VBox spacing="12" alignment="TOP_CENTER">
                 <padding>
                     <Insets top="30" right="20" bottom="20" left="10"/>
                 </padding>
 
-                <VBox spacing="10" alignment="CENTER">
+                <VBox spacing="10" alignment="CENTER" VBox.vgrow="NEVER">
                     <Label text="Sua Carta" style="-fx-font-size: 20;"/>
                     <ImageView fx:id="suaCartaImage" id="suaCartaImage"/>
-                </VBox>
-
-                <VBox spacing="10">
-                    <Label text="Código da Sala"/>
-                    <TextField fx:id="codigoSala" id="codigoSala" editable="false" style="-fx-text-alignment: center;"/>
+                    <VBox.margin>
+                        <Insets bottom="25"/>
+                    </VBox.margin>
                 </VBox>
 
                 <Button fx:id="btnPalpitar" id="btnPalpitar" text="Palpitar"/>
                 <Button fx:id="btnPerguntar" id="btnPerguntar" text="Fazer Pergunta"/>
 
-                <Region VBox.vgrow="ALWAYS"/>
+                <VBox.margin>
+                    <Insets top="20"/>
+                </VBox.margin>
 
                 <Button fx:id="btnSairFase1" text="Sair da Partida" styleClass="menu-button-secondary" style="-fx-padding: 10 20 10 20;"/>
             </VBox>

@@ -14,6 +14,7 @@ import br.edu.ifsp.pep.utills.ChallengeConfirm;
 import br.edu.ifsp.pep.utills.ChallengeOver;
 import br.edu.ifsp.pep.utills.ChallengeResult;
 import br.edu.ifsp.pep.utills.ChallengeSetup;
+import br.edu.ifsp.pep.utills.GameAborted;
 import br.edu.ifsp.pep.utills.GuessResult;
 import br.edu.ifsp.pep.utills.GuessWithCard;
 import br.edu.ifsp.pep.model.Equipe;
@@ -55,7 +56,7 @@ public class MainController {
     @FXML private GridPane gridOpcoesDesafio;
     @FXML private Button btnCancelarDesafio;
     @FXML private Button btnSairFase1;
-    @FXML private TextField codigoSala;
+    // @FXML private TextField codigoSala; // Removido da UI - não é necessário
 
     // --- Módulos Principais ---
     private GameManager gameManager;
@@ -86,9 +87,19 @@ public class MainController {
     private long desafioStartTime;
     private List<Boolean> desafioRespostas; // NOVO: rastreia acertos/erros
 
+    // Callback para voltar ao menu
+    private Runnable returnToMenuCallback;
+
     @FXML
     public void initialize() {
 
+    }
+
+    /**
+     * Define o callback para quando o jogador quer voltar ao menu
+     */
+    public void setReturnToMenuCallback(Runnable callback) {
+        this.returnToMenuCallback = callback;
     }
 
     public void setupGame(GameSetup setup) {
@@ -128,8 +139,8 @@ public class MainController {
         btnNao.setOnAction(this::onNao);
         btnPerguntar.setOnAction(this::onPerguntar);
         btnPalpitar.setOnAction(this::onPalpitar);
-        btnSairFase1.setOnAction(e -> sairDoJogo());
-        codigoSala.setText(setup.roomCode());
+        btnSairFase1.setOnAction(e -> notificarEAbandonarPartida("Saiu da Fase 1"));
+        // codigoSala.setText(setup.roomCode()); // Removido - campo não existe mais
     }
 
     private void setupNetworkGame(GameSetup setup) {
@@ -261,11 +272,11 @@ public class MainController {
                 // Deve mostrar a carta do OPONENTE (que ele palpitou corretamente)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
                 equipeParaExibir.setCartaSecreta(cartaDoPalpitante); // A carta que ele palpitou corretamente
-                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::voltarAoMenu);
             } else {
                 // Oponente ERROU = Você GANHOU
                 // Não precisa mostrar carta (vitória)
-                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
+                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::voltarAoMenu);
             }
         } else if (message instanceof Carta) {
             // Recebe Palpite do Oponente (compatibilidade com versão anterior)
@@ -291,11 +302,11 @@ public class MainController {
                 // Deve mostrar a carta do OPONENTE (que ele descobriu corretamente)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
                 equipeParaExibir.setCartaSecreta(palpiteRecebido); // A carta que ele palpitou corretamente
-                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
-            } else { 
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::voltarAoMenu);
+            } else {
                 // Oponente ERROU = Você GANHOU
                 // Não precisa mostrar carta (vitória)
-                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::sairDoJogo);
+                uiManager.exibirFimDeJogo(true, null, this::iniciarDesafio, this::voltarAoMenu);
             }
         } else if (message instanceof GuessResult) {
             GuessResult resultado = (GuessResult) message;
@@ -314,13 +325,13 @@ public class MainController {
                 // Mostra a carta que palpitou corretamente (que era a carta do HOST)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
                 equipeParaExibir.setCartaSecreta(cartaParaExibir);
-                uiManager.exibirFimDeJogo(true, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+                uiManager.exibirFimDeJogo(true, equipeParaExibir, this::iniciarDesafio, this::voltarAoMenu);
             } else {
                 // Você ERROU = Você PERDEU
                 // Mostra a carta que você palpitou (a que você achou que era do oponente)
                 Equipe equipeParaExibir = new Equipe("Equipe Oponente");
                 equipeParaExibir.setCartaSecreta(cartaParaExibir);
-                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::sairDoJogo);
+                uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::voltarAoMenu);
             }
         } else if (message instanceof ChallengeSetup setup) {
             // O Cliente recebeu o convite!
@@ -358,6 +369,12 @@ public class MainController {
                 showAlert("Desafio Recusado", "O oponente recusou o desafio.");
                 // O Host fica na tela de fim de jogo e pode "Sair"
             }
+        } else if (message instanceof GameAborted(String reason)) {
+            // O outro jogador abandonou a partida
+            System.out.println("O oponente saiu da partida: " + reason);
+            uiManager.fecharAguardando(); // Fecha qualquer tela de espera
+            showAlert("Partida Cancelada", "O oponente saiu da partida.\n\nVocê será redirecionado para o menu inicial.");
+            voltarAoMenu();
         }
     }
 
@@ -413,7 +430,7 @@ public class MainController {
                         if (gameMode == GameMode.SINGLE_PLAYER) {
                             // Lógica para Single-Player (vs. IA)
                             boolean acertou = gameManager.verificarPalpite(palpite, true);
-                            uiManager.exibirFimDeJogo(acertou, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
+                            uiManager.exibirFimDeJogo(acertou, gameManager.getEquipeOponente(), this::iniciarDesafio, this::voltarAoMenu);
                         } else {
                             // Lógica para Multiplayer (Rede)
                             try {
@@ -550,7 +567,7 @@ public class MainController {
                 fimDeJogoDelay.setOnFinished(e -> {
                     // O resultado é invertido: se o oponente acertou (true), o jogador perdeu (vitoria = false).
                     boolean jogadorVenceu = !palpite.acertou();
-                    uiManager.exibirFimDeJogo(jogadorVenceu, gameManager.getEquipeOponente(), this::iniciarDesafio, this::sairDoJogo);
+                    uiManager.exibirFimDeJogo(jogadorVenceu, gameManager.getEquipeOponente(), this::iniciarDesafio, this::voltarAoMenu);
                 });
                 fimDeJogoDelay.play();
             }
@@ -743,7 +760,7 @@ public class MainController {
         // 6. Lógica de Fim de Jogo
         if (gameMode == GameMode.SINGLE_PLAYER) {
             // No single player, o resultado final é imediato
-            uiManager.exibirResultadoFinal("Bom trabalho!", this::sairDoJogo);
+            uiManager.exibirResultadoFinal("Bom trabalho!", this::voltarAoMenu);
 
         } else if (gameMode == GameMode.MULTIPLAYER_CLIENT) {
             // O Cliente envia seu resultado para o Host e espera
@@ -801,7 +818,7 @@ public class MainController {
 
         // Anunciar o resultado para o Host
         Platform.runLater(() -> {
-            uiManager.exibirResultadoFinal(msgVencedorHost, this::sairDoJogo);
+            uiManager.exibirResultadoFinal(msgVencedorHost, this::voltarAoMenu);
         });
 
         // Enviar o resultado para o Cliente
@@ -818,11 +835,50 @@ public class MainController {
     }
 
     /**
-     * Cancela a espera (aguardando conexão, cliente, etc) e sai do jogo
+     * Volta ao menu inicial, limpando os recursos da partida
+     */
+    private void voltarAoMenu() {
+        System.out.println("Voltando ao menu inicial...");
+        if (returnToMenuCallback != null) {
+            returnToMenuCallback.run();
+        } else {
+            System.err.println("Erro: returnToMenuCallback não foi definido");
+            sairDoJogo();
+        }
+    }
+
+    /**
+     * Notifica o outro jogador que está abandonando a partida e volta ao menu
+     */
+    private void notificarEAbandonarPartida(String reason) {
+        System.out.println("Notificando abandono da partida: " + reason);
+
+        // Se for multiplayer, notifica o outro jogador
+        if (gameMode == GameMode.MULTIPLAYER_HOST || gameMode == GameMode.MULTIPLAYER_CLIENT) {
+            try {
+                networkManager.send(new GameAborted(reason));
+            } catch (Exception e) {
+                System.err.println("Erro ao notificar abandono: " + e.getMessage());
+            }
+        }
+
+        // Aguarda um pouco para a mensagem ser enviada
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Volta ao menu
+        voltarAoMenu();
+    }
+
+    /**
+     * Cancela a espera (aguardando conexão, cliente, etc) e volta ao menu
      */
     private void cancelarEspera() {
         System.out.println("Cancelando espera...");
-        sairDoJogo();
+        notificarEAbandonarPartida("Cancelou a espera");
     }
 
     /**
@@ -831,11 +887,11 @@ public class MainController {
     private void cancelarConexao() {
         System.out.println("Cancelando conexão...");
         loadingOverlay.setVisible(false);
-        sairDoJogo();
+        notificarEAbandonarPartida("Cancelou a conexão");
     }
 
     /**
-     * Cancela o desafio (Fase 2) e sai do jogo
+     * Cancela o desafio (Fase 2) e volta ao menu
      */
     private void cancelarDesafio() {
         System.out.println("Cancelando desafio...");
@@ -848,7 +904,7 @@ public class MainController {
         painelDesafio.setManaged(false);
         btnCancelarDesafio.setVisible(false);
         btnCancelarDesafio.setManaged(false);
-        sairDoJogo();
+        notificarEAbandonarPartida("Cancelou a Fase 2");
     }
 
     /**

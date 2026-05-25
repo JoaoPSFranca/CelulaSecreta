@@ -18,6 +18,7 @@ public class MenuInicialController {
     @FXML private Button btnCriarSala;
     @FXML private Button btnVoltarMultiplayer;
     @FXML private Button btnCancelarCarregamento;
+    @FXML private Button btnSairAplicacao;
     @FXML private TextField ipInput;
     @FXML private Label labelCarregando;
     @FXML private javafx.scene.image.ImageView logoImage;
@@ -41,6 +42,7 @@ public class MenuInicialController {
         // Menu Principal
         btnJogarSozinho.setOnAction(e -> startSinglePlayer());
         btnMultiplayer.setOnAction(e -> showMultiplayerMenu());
+        btnSairAplicacao.setOnAction(e -> sairAplicacao());
 
         // Menu Multiplayer
         btnEntrarSala.setOnAction(e -> joinGame());
@@ -200,6 +202,12 @@ public class MenuInicialController {
             alert.setContentText(message);
             alert.showAndWait();
         });
+    }
+
+    private void sairAplicacao() {
+        System.out.println("Saindo da aplicação...");
+        Platform.exit();
+        System.exit(0);
     }
 }
 

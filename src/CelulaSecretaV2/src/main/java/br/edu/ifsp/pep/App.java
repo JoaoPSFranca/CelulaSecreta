@@ -54,6 +54,7 @@ public class App extends Application {
             scene.getRoot().setStyle("-fx-background-color: #394a46;");
 
             mainController = fxmlLoader.getController();
+            mainController.setReturnToMenuCallback(this::returnToMenu);
             mainController.setupGame(setup);
 
             primaryStage.setScene(scene);
@@ -61,6 +62,43 @@ public class App extends Application {
         } catch (Exception e) {
             e.printStackTrace();
             Platform.exit();
+        }
+    }
+
+    /**
+     * Volta para o menu inicial, limpando os recursos da partida
+     */
+    public void returnToMenu() {
+        System.out.println("Voltando para o menu inicial...");
+
+        try {
+            // Limpa os recursos do MainController
+            if (mainController != null) {
+                mainController.cleanup();
+                mainController = null;
+            }
+
+            // Aguarda um pouco para as threads finalizarem
+            Thread.sleep(200);
+
+            // Recarrega o menu inicial
+            FXMLLoader menuLoader = new FXMLLoader(getClass().getResource("/fxml/menu_inicial.fxml"));
+            Scene menuScene = new Scene(menuLoader.load(), 1366, 768);
+            menuScene.getStylesheets().add(getClass().getResource("/css/Style.css").toExternalForm());
+
+            MenuInicialController menuController = menuLoader.getController();
+            menuController.setGameSetupListener(new MenuInicialController.GameSetupListener() {
+                @Override
+                public void onGameSetupComplete(GameSetup setup) {
+                    startMainGame(setup);
+                }
+            });
+
+            primaryStage.setScene(menuScene);
+            primaryStage.show();
+        } catch (Exception e) {
+            System.err.println("Erro ao voltar para o menu: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
