@@ -1,14 +1,20 @@
 package br.edu.ifsp.pep.controller;
 
 import br.edu.ifsp.pep.network.*;
+import br.edu.ifsp.pep.ui.UIAlert;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 
 public class MenuInicialController {
 
+    @FXML private StackPane rootPane;
     @FXML private VBox menuPrincipal;
     @FXML private VBox menuMultiplayer;
     @FXML private VBox menuCarregando;
@@ -22,6 +28,9 @@ public class MenuInicialController {
     @FXML private TextField ipInput;
     @FXML private Label labelCarregando;
     @FXML private javafx.scene.image.ImageView logoImage;
+    @FXML private TextField labelCodigoSala;
+    @FXML private Button btnCopiarCodigo;
+    @FXML private HBox codigoSalaContainer;
 
     private GameSetupListener setupListener;
     private Task<?> connectionTask;
@@ -56,6 +65,9 @@ public class MenuInicialController {
 
         // Cancelar carregamento
         btnCancelarCarregamento.setOnAction(e -> cancelConnection());
+        
+        // Copiar código de sala
+        btnCopiarCodigo.setOnAction(e -> copyRoomCodeToClipboard());
     }
 
     private void showMainMenu() {
@@ -67,6 +79,10 @@ public class MenuInicialController {
         menuMultiplayer.setManaged(false);
         menuCarregando.setVisible(false);
         menuCarregando.setManaged(false);
+        if (codigoSalaContainer != null) {
+            codigoSalaContainer.setVisible(false);
+            codigoSalaContainer.setManaged(false);
+        }
     }
 
     private void showMultiplayerMenu() {
@@ -80,6 +96,10 @@ public class MenuInicialController {
         menuCarregando.setManaged(false);
         ipInput.clear();
         btnEntrarSala.setDisable(true);
+        if (codigoSalaContainer != null) {
+            codigoSalaContainer.setVisible(false);
+            codigoSalaContainer.setManaged(false);
+        }
     }
 
     private void showLoadingMenu(String message) {
@@ -92,6 +112,16 @@ public class MenuInicialController {
         menuCarregando.setVisible(true);
         menuCarregando.setManaged(true);
         labelCarregando.setText(message);
+    }
+
+    private void showLoadingMenuWithCode(String message, String roomCode) {
+        showLoadingMenu(message);
+        // Exibir o código de sala para o host copiar
+        if (labelCodigoSala != null && codigoSalaContainer != null) {
+            labelCodigoSala.setText(roomCode);
+            codigoSalaContainer.setVisible(true);
+            codigoSalaContainer.setManaged(true);
+        }
     }
 
     private void startSinglePlayer() {
@@ -151,25 +181,17 @@ public class MenuInicialController {
         connectionTask = new Task<GameSetup>() {
             @Override
             protected GameSetup call() {
-                try {
-                    String localIp = NetworkUtils.detectLocalIPv4();
-                    String roomCode = RoomCodeGenerator.generateRoomCode();
+                String localIp = NetworkUtils.detectLocalIPv4();
+                String roomCode = RoomCodeGenerator.generateRoomCode();
+                
+                Platform.runLater(() -> showLoadingMenuWithCode("Aguardando jogador...", roomCode));
 
-                    // Inicia o anúncio da sala na rede
-                    RoomServer.startBroadcastingRoom(roomCode, localIp);
+                // Inicia o anúncio da sala na rede
+                RoomServer.startBroadcastingRoom(roomCode, localIp);
 
-//                    Platform.runLater(() -> {
-//                        Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
-//                        infoAlert.setTitle("Sala Criada!");
-//                        infoAlert.setHeaderText("Compartilhe este código com o outro jogador:");
-//                        infoAlert.setContentText(roomCode);
-//                        infoAlert.showAndWait();
-//                    });
-
-                    return new GameSetup(GameMode.MULTIPLAYER_HOST, localIp, roomCode);
-                } catch (Exception e) {
-                    return new GameSetup(GameMode.MULTIPLAYER_HOST, "127.0.0.1", "XXXXXX");
-                }
+                // Retorna imediatamente — a espera real pela conexão TCP
+                // acontece no MainController.setupNetworkGame() via serverSocket.accept()
+                return new GameSetup(GameMode.MULTIPLAYER_HOST, localIp, roomCode);
             }
         };
 
@@ -196,12 +218,30 @@ public class MenuInicialController {
 
     private void showError(String message) {
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Erro");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.showAndWait();
+            UIAlert.mostrarAlerta(rootPane, "Erro", message);
         });
+    }
+
+    private void copyRoomCodeToClipboard() {
+        String roomCode = labelCodigoSala.getText();
+        if (roomCode != null && !roomCode.isEmpty()) {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(roomCode);
+            clipboard.setContent(content);
+            
+            // Mostrar feedback visual
+            String originalText = btnCopiarCodigo.getText();
+            btnCopiarCodigo.setText("Copiado!");
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                    Platform.runLater(() -> btnCopiarCodigo.setText(originalText));
+                } catch (InterruptedException e) {
+                    Platform.runLater(() -> btnCopiarCodigo.setText(originalText));
+                }
+            }).start();
+        }
     }
 
     private void sairAplicacao() {

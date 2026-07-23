@@ -17,6 +17,7 @@ public class RoomServer {
 
     private static final int BROADCAST_PORT = 54322;
     private static final Map<String, String> activeRooms = new ConcurrentHashMap<>();
+    private static final Map<String, CountDownLatch> roomConnections = new ConcurrentHashMap<>();
     private static volatile boolean broadcasting = false;
     private static Thread broadcasterThread;
     private static Thread listenerThread;
@@ -201,9 +202,41 @@ public class RoomServer {
         System.out.println("Encerrando RoomServer...");
         broadcasting = false;
         activeRooms.clear();
+        roomConnections.clear();
         stopBroadcastingRoom();
         stopDiscovery();
         System.out.println("RoomServer encerrado.");
+    }
+
+    /**
+     * Aguarda até que um cliente se conecte à sala
+     * @param roomCode O código da sala
+     * @param timeoutSeconds Tempo máximo de espera em segundos
+     * @return true se um cliente se conectou, false se timeout
+     */
+    public static boolean waitForClientConnection(String roomCode, int timeoutSeconds) {
+        CountDownLatch latch = new CountDownLatch(1);
+        roomConnections.put(roomCode, latch);
+        
+        try {
+            return latch.await(timeoutSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } finally {
+            roomConnections.remove(roomCode);
+        }
+    }
+
+    /**
+     * Notifica que um cliente se conectou à sala
+     * @param roomCode O código da sala
+     */
+    public static void notifyClientConnected(String roomCode) {
+        CountDownLatch latch = roomConnections.get(roomCode);
+        if (latch != null) {
+            latch.countDown();
+        }
     }
 }
 

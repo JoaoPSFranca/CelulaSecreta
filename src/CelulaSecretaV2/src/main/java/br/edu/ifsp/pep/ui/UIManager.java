@@ -494,8 +494,8 @@ public class UIManager {
     }
 
     public void exibirConviteDesafio(Runnable onAceitar, Runnable onRecusar) {
-        // Primeiro, remove o painel de fim de jogo da Fase 1
-        rootPane.getChildren().removeIf(node -> node.getStyle().contains("-fx-background-color: #31413d;"));
+        // Remove qualquer painel anterior
+        rootPane.getChildren().removeIf(node -> node.getStyle() != null && node.getStyle().contains("-fx-background-color: #31413d;"));
 
         VBox convitePane = new VBox(20);
         convitePane.setAlignment(Pos.CENTER);
@@ -504,7 +504,7 @@ public class UIManager {
 
         Label titulo = new Label("Convite para Desafio!");
         titulo.setStyle("-fx-font-size: 24px; -fx-text-fill: #a0d4c8; -fx-font-weight: bold;");
-        Label sub = new Label("O Host convidou você para a Fase 2.");
+        Label sub = new Label("O oponente quer participar da Fase 2. Você aceita o desafio?");
         sub.setStyle("-fx-font-size: 16px; -fx-text-fill: #e0e5e4;");
 
         Button btnAceitar = new Button("Aceitar");
@@ -526,5 +526,17 @@ public class UIManager {
 
         convitePane.getChildren().addAll(titulo, sub, botoes);
         rootPane.getChildren().add(convitePane);
+    }
+
+    public void exibirAlertaCustomizado(String titulo, String mensagem) {
+        exibirAlertaCustomizado(titulo, mensagem, null);
+    }
+
+    public void exibirAlertaCustomizado(String titulo, String mensagem, Runnable onFechar) {
+        UIAlert.mostrarAlerta(rootPane, titulo, mensagem, onFechar);
+    }
+
+    public void exibirAlertaComOpcoes(String titulo, String mensagem, String opcao1, String opcao2, Runnable onOpcao1, Runnable onOpcao2) {
+        UIAlert.mostrarAlertaComOpcoes(rootPane, titulo, mensagem, opcao1, opcao2, onOpcao1, onOpcao2);
     }
 }

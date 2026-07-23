@@ -1,7 +1,3 @@
-Se cancelar a partida pelo host ter voltado para o menu ou fechado o jogo, avisar o outro jogador e colocar o botão para ir para o menu inicial ou fechar o jogo. Feito, porém falta adicionar o estilo no aviso de que o jogador saiu.
-
-Adicionar opção contrária de o cliente convidar o host para a fase 2
-
 tentar adicionar sistema de reconexão
 
 verificar possibilidade de portabilidade para outros sistemas (linux e macos)

@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="br.edu.ifsp.pep.controller.MenuInicialController"
+           fx:id="rootPane"
            prefWidth="1366" prefHeight="768">
 
     <!-- Background -->
@@ -53,6 +54,15 @@
             <ProgressIndicator style="-fx-scale-x: 2; -fx-scale-y: 2;"/>
             <Label fx:id="labelCarregando" text="Aguardando conexão..."
                    style="-fx-font-size: 20px; -fx-text-fill: #a0d4c8; -fx-text-alignment: center;"/>
+            
+            <!-- Código de Sala para o Host -->
+            <HBox alignment="CENTER" spacing="15" fx:id="codigoSalaContainer" visible="false" managed="false">
+                <Label text="Código:" style="-fx-font-size: 16px; -fx-text-fill: #a0d4c8;"/>
+                <TextField fx:id="labelCodigoSala" editable="false" style="-fx-padding: 10; -fx-font-size: 18px; -fx-font-weight: bold; -fx-pref-width: 150; -fx-alignment: center;"/>
+                <Button fx:id="btnCopiarCodigo" text="Copiar Código" styleClass="round-button"
+                        style="-fx-padding: 10 30 10 30;"/>
+            </HBox>
+            
             <Button fx:id="btnCancelarCarregamento" text="Cancelar" styleClass="menu-button-secondary"
                     style="-fx-padding: 15 40 15 40;"/>
         </VBox>

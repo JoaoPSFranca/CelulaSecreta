@@ -12,6 +12,7 @@ import br.edu.ifsp.pep.service.ChallengeService;
 import br.edu.ifsp.pep.ui.UIManager;
 import br.edu.ifsp.pep.utills.ChallengeConfirm;
 import br.edu.ifsp.pep.utills.ChallengeOver;
+import br.edu.ifsp.pep.utills.ChallengeRequest;
 import br.edu.ifsp.pep.utills.ChallengeResult;
 import br.edu.ifsp.pep.utills.ChallengeSetup;
 import br.edu.ifsp.pep.utills.GameAborted;
@@ -27,7 +28,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -56,7 +60,9 @@ public class MainController {
     @FXML private GridPane gridOpcoesDesafio;
     @FXML private Button btnCancelarDesafio;
     @FXML private Button btnSairFase1;
-    // @FXML private TextField codigoSala; // Removido da UI - não é necessário
+    @FXML private HBox codigoSalaContainer;
+    @FXML private TextField labelCodigoSala;
+    @FXML private Button btnCopiarCodigo;
 
     // --- Módulos Principais ---
     private GameManager gameManager;
@@ -74,7 +80,7 @@ public class MainController {
     private ChallengeResult opponentChallengeResult;
     private boolean desafioFinalizado = false;
     private ChallengeSetup challengeSetupPendente;
-    private boolean clientIsReadyForChallenge = false;
+    private boolean challengeRequestEnviado = false;
     private boolean resultadosProcessados = false;
 
     // --- Outras variáveis ---
@@ -147,6 +153,17 @@ public class MainController {
         this.networkManager = new NetworkManager();
         loadingOverlay.setVisible(true); // Mostra o overlay de carregamento.
 
+        // Se for host, exibe o código da sala e o botão de copiar
+        if (setup.mode() == GameMode.MULTIPLAYER_HOST && setup.roomCode() != null) {
+            labelCodigoSala.setText(setup.roomCode());
+            codigoSalaContainer.setVisible(true);
+            codigoSalaContainer.setManaged(true);
+            btnCopiarCodigo.setOnAction(e -> copyRoomCodeToClipboard());
+        } else {
+            codigoSalaContainer.setVisible(false);
+            codigoSalaContainer.setManaged(false);
+        }
+
         // Cria a tarefa que rodará em segundo plano para não travar a UI.
         Task<Boolean> connectionTask = new Task<>() {
             @Override
@@ -174,12 +191,17 @@ public class MainController {
         // Define o que fazer quando a tarefa terminar com sucesso.
         connectionTask.setOnSucceeded(event -> {
             loadingOverlay.setVisible(false); // Esconde o overlay.
+                codigoSalaContainer.setVisible(false);
+                codigoSalaContainer.setManaged(false);
             boolean success = connectionTask.getValue();
 
             if (success) {
                 // A conexão foi bem-sucedida.
                 networkManager.setOnMessageReceived(this::processReceivedMessage);
                 networkManager.startListening();
+
+                // Para o broadcast — a conexão já foi estabelecida
+                RoomServer.stopBroadcastingRoom();
 
                 // No modo de rede, o oponente é gerenciado pela rede (null no GameManager).
                 this.gameManager = new GameManager(null);
@@ -196,14 +218,14 @@ public class MainController {
 
                 uiManager.updateUIForTurnState(gameManager.isMyTurn(), false);
             } else {
-                showAlert("Erro de Conexão", "Não foi possível conectar. Verifique o IP e se o host está esperando.");
+                showAlertAndCallback("Erro de Conexão", "Não foi possível conectar. Verifique o IP e se o host está esperando.", this::voltarAoMenu);
             }
         });
 
         // Define o que fazer se a tarefa falhar com uma exceção inesperada.
         connectionTask.setOnFailed(event -> {
             loadingOverlay.setVisible(false);
-            showAlert("Erro Crítico de Rede", "Ocorreu um erro inesperado durante a conexão.");
+            showAlertAndCallback("Erro Crítico de Rede", "Ocorreu um erro inesperado durante a conexão.", this::voltarAoMenu);
             connectionTask.getException().printStackTrace();
         });
 
@@ -334,16 +356,16 @@ public class MainController {
                 uiManager.exibirFimDeJogo(false, equipeParaExibir, this::iniciarDesafio, this::voltarAoMenu);
             }
         } else if (message instanceof ChallengeSetup setup) {
-            // O Cliente recebeu o convite!
-            this.challengeSetupPendente = setup; // Salva o convite
+            // Recebeu os desafios do oponente (foi aceito o pedido)!
+            this.challengeSetupPendente = setup; // Salva os desafios
+            uiManager.fecharAguardando(); // Fecha o "Aguardando..."
+            // Inicia o jogo imediatamente
+            prepararEIniciarDesafioUI(setup.perguntas());
+        } else if (message instanceof ChallengeRequest) {
+            // Recebeu uma solicitação de desafio
             uiManager.fecharAguardando(); // Fecha o "Aguardando..." se estiver aberto
-            if (this.clientIsReadyForChallenge) {
-                // Se o cliente já clicou em "jogar", aceita automaticamente.
-                aceitarDesafio();
-            } else {
-                // Se o cliente ainda não clicou, mostra o convite.
-                uiManager.exibirConviteDesafio(this::aceitarDesafio, this::recusarDesafio);
-            }
+            // Mostra convite simples (mesma interface para ambos)
+            uiManager.exibirConviteDesafio(this::aceitarDesafio, this::recusarDesafio);
         }  else if (message instanceof ChallengeResult resultadoOponente) {
             // --- LÓGICA ATUALIZADA (SÓ O HOST RECEBE ISSO) ---
             this.opponentChallengeResult = resultadoOponente;
@@ -357,34 +379,30 @@ public class MainController {
         } else if (message instanceof ChallengeOver(String mensagemResultado)) {
             uiManager.exibirResultadoFinal(mensagemResultado, this::sairDoJogo);
         } else if (message instanceof ChallengeConfirm(boolean aceito)) {
-            // O Host recebeu a resposta do Cliente
+            // Recebeu resposta do oponente
             uiManager.fecharAguardando(); // Fecha o painel "Aguardando..."
+            this.challengeRequestEnviado = false;
 
-            if (aceito) {
-                // Cliente aceitou! Inicia o jogo para o Host.
-                uiManager.addSystemMessage("Cliente aceitou. Começando!");
-                prepararEIniciarDesafioUI(this.listaDesafio);
-            } else {
-                // Cliente recusou.
-                showAlert("Desafio Recusado", "O oponente recusou o desafio.");
-                // O Host fica na tela de fim de jogo e pode "Sair"
+            if (!aceito) {
+                // Oponente recusou
+                showAlertAndCallback("Desafio Recusado", "O oponente recusou o desafio.", this::voltarAoMenu);
             }
+            // Se aceito, apenas aguarda o ChallengeSetup que virá em seguida
         } else if (message instanceof GameAborted(String reason)) {
             // O outro jogador abandonou a partida
             System.out.println("O oponente saiu da partida: " + reason);
             uiManager.fecharAguardando(); // Fecha qualquer tela de espera
-            showAlert("Partida Cancelada", "O oponente saiu da partida.\n\nVocê será redirecionado para o menu inicial.");
-            voltarAoMenu();
+            showAlertAndCallback("Partida Cancelada", "O oponente saiu da partida.\n\nVocê será redirecionado para o menu inicial.", this::voltarAoMenu);
         }
     }
 
-    // Metodo auxiliar para exibir alertas
+    // Metodo auxiliar para exibir alertas customizados
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        uiManager.exibirAlertaCustomizado(title, content);
+    }
+
+    private void showAlertAndCallback(String title, String content, Runnable onFechar) {
+        uiManager.exibirAlertaCustomizado(title, content, onFechar);
     }
 
     private void setupInitialBoard() {
@@ -594,57 +612,43 @@ public class MainController {
     private void iniciarDesafio() {
         System.out.println("Iniciando Desafio (Fase 2)...");
 
-        // Lógica do Host: Envia o convite e espera.
-        if (gameMode == GameMode.MULTIPLAYER_HOST) {
-            uiManager.addSystemMessage("Enviando convite de desafio...");
-
-            // 1. Obter 10 desafios aleatórios do banco de questões
-            this.listaDesafio = challengeService.obterDesafiosAleatorios(10);
-
-            // 2. Enviar o "Pacote" de setup para o cliente
-            try {
-                networkManager.send(new ChallengeSetup(this.listaDesafio));
-            } catch (Exception e) {
-                showAlert("Erro de Rede", "Não foi possível enviar o convite.");
-                e.printStackTrace();
-                return;
-            }
-
-            // 3. Exibir tela de "Aguardando"
-            uiManager.exibirAguardandoOponente("Aguardando resposta do Cliente...");
-
-        } else if (gameMode == GameMode.SINGLE_PLAYER) {
+        if (gameMode == GameMode.SINGLE_PLAYER) {
             // Lógica Single Player: Obter 10 desafios aleatórios para a Fase 2
             this.listaDesafio = challengeService.obterDesafiosAleatorios(10);
             prepararEIniciarDesafioUI(this.listaDesafio);
         } else {
-            // Lógica do Cliente: Ao clicar, apenas exibe "Aguardando..."
-            this.clientIsReadyForChallenge = true;
-            uiManager.exibirAguardandoOponente("Aguardando o Host iniciar o desafio...");
+            // Lógica Multiplayer (qualquer um pode solicitar): Envia ChallengeRequest
+            try {
+                networkManager.send(new ChallengeRequest());
+                this.challengeRequestEnviado = true;
+                uiManager.addSystemMessage("Solicitando Fase 2...");
+                uiManager.exibirAguardandoOponente("Aguardando resposta do oponente...");
+            } catch (Exception e) {
+                showAlert("Erro de Rede", "Não foi possível enviar a solicitação de desafio.");
+                e.printStackTrace();
+            }
         }
     }
 
     private void aceitarDesafio() {
-        this.clientIsReadyForChallenge = false;
-        if (challengeSetupPendente == null) return; // Segurança
         try {
-            networkManager.send(new ChallengeConfirm(true));
-            // Inicia o jogo para o cliente
-            prepararEIniciarDesafioUI(challengeSetupPendente.perguntas());
-            this.challengeSetupPendente = null; // Limpa o convite
+            // Gera os desafios e envia para o oponente
+            this.listaDesafio = challengeService.obterDesafiosAleatorios(10);
+            networkManager.send(new ChallengeSetup(this.listaDesafio));
+            // Inicia o jogo
+            prepararEIniciarDesafioUI(this.listaDesafio);
         } catch (Exception e) {
-            showAlert("Erro de Rede", "Não foi possível confirmar o desafio.");
+            showAlert("Erro de Rede", "Não foi possível iniciar o desafio.");
         }
     }
 
     private void recusarDesafio() {
-        this.clientIsReadyForChallenge = false;
         try {
             networkManager.send(new ChallengeConfirm(false));
-            sairDoJogo(); // Simplesmente sai do jogo
+            voltarAoMenu(); // Volta ao menu
         } catch (Exception e) {
             // Falha ao enviar a recusa, apenas sai
-            sairDoJogo();
+            voltarAoMenu();
         }
     }
 
@@ -654,7 +658,6 @@ public class MainController {
         this.desafioAcertos = 0;
         this.desafioStartTime = System.currentTimeMillis();
         this.desafioFinalizado = false;
-        this.clientIsReadyForChallenge = false;
         this.resultadosProcessados = false;
         this.desafioRespostas = new ArrayList<>(); // NOVO: inicializa a lista
 
@@ -874,11 +877,25 @@ public class MainController {
     }
 
     /**
-     * Cancela a espera (aguardando conexão, cliente, etc) e volta ao menu
+     * Cancela a espera (aguardando resposta do desafio)
      */
     private void cancelarEspera() {
-        System.out.println("Cancelando espera...");
-        notificarEAbandonarPartida("Cancelou a espera");
+        System.out.println("Cancelando espera de resposta do desafio...");
+        
+        // Se estava esperando por uma solicitação de desafio, cancela apenas a solicitação
+        if (challengeRequestEnviado) {
+            this.challengeRequestEnviado = false;
+            try {
+                // Avisa o outro lado que cancelou a solicitação
+                networkManager.send(new ChallengeConfirm(false));
+            } catch (Exception e) {
+                System.err.println("Erro ao notificar cancelamento: " + e.getMessage());
+            }
+            uiManager.addSystemMessage("Solicitação de desafio cancelada.");
+        } else {
+            // Se for outro tipo de espera, abandona a partida
+            notificarEAbandonarPartida("Cancelou a espera");
+        }
     }
 
     /**
@@ -905,6 +922,31 @@ public class MainController {
         btnCancelarDesafio.setVisible(false);
         btnCancelarDesafio.setManaged(false);
         notificarEAbandonarPartida("Cancelou a Fase 2");
+    }
+
+    /**
+     * Copia o código da sala para a área de transferência
+     */
+    private void copyRoomCodeToClipboard() {
+        String roomCode = labelCodigoSala.getText();
+        if (roomCode != null && !roomCode.isEmpty()) {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(roomCode);
+            clipboard.setContent(content);
+
+            // Feedback visual
+            String originalText = btnCopiarCodigo.getText();
+            btnCopiarCodigo.setText("Copiado!");
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                    Platform.runLater(() -> btnCopiarCodigo.setText(originalText));
+                } catch (InterruptedException e) {
+                    Platform.runLater(() -> btnCopiarCodigo.setText(originalText));
+                }
+            }).start();
+        }
     }
 
     /**
