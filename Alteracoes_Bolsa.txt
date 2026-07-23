@@ -1,5 +1,3 @@
 tentar adicionar sistema de reconexão
 
 verificar possibilidade de portabilidade para outros sistemas (linux e macos)
-
-
