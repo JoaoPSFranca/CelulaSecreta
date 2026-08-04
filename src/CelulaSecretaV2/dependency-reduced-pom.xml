@@ -40,7 +40,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.5.2</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -48,38 +48,26 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
               <transformers>
                 <transformer>
-                  <mainClass>${main.class}</mainClass>
+                  <mainClass>br.edu.ifsp.pep.Launcher</mainClass>
                 </transformer>
               </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.github.akman</groupId>
-        <artifactId>jpackage-maven-plugin</artifactId>
-        <version>0.1.5</version>
-        <executions>
-          <execution>
-            <id>jpackage-image</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jpackage</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <dest>${project.build.directory}/jpackage</dest>
-          <name>${app.name}</name>
-          <type>IMAGE</type>
-          <runtimeimage>${project.build.directory}/${jlink.imageName}</runtimeimage>
-          <appversion>${app.version}</appversion>
-          <vendor>SeuNome</vendor>
-          <main-jar>${project.build.finalName}.jar</main-jar>
-          <main-class>${main.class}</main-class>
-        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -122,13 +110,14 @@
     </dependency>
   </dependencies>
   <properties>
+    <jlink.imageName>app</jlink.imageName>
     <main.class>br.edu.ifsp.pep.App</main.class>
     <java.version>21</java.version>
-    <app.version>1.0.0</app.version>
-    <jlink.imageName>app</jlink.imageName>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <vendor.name>JotaPe</vendor.name>
     <javafx.version>21</javafx.version>
     <junit.version>5.10.2</junit.version>
     <app.name>CelulaSecreta</app.name>
+    <app.version>4.2.0</app.version>
   </properties>
 </project>

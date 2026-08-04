@@ -7,7 +7,10 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
+
+import java.util.Objects;
 
 public class App extends Application {
 
@@ -31,6 +34,9 @@ public class App extends Application {
             }
         });
 
+        Image icone = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/icon.png")));
+
+        stage.getIcons().add(icone);
         stage.setTitle("Célula Secreta");
         stage.setScene(menuScene);
         stage.setWidth(1366);

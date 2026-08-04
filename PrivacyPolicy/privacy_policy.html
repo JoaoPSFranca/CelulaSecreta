@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade – Célula Secreta</title>
+    <meta name="description" content="Política de Privacidade do aplicativo Célula Secreta, disponível na Microsoft Store.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #0f1a18;
+            --bg-secondary: #1a2e2a;
+            --bg-card: #1e3530;
+            --accent: #4ecdc4;
+            --accent-dim: #2a9d8f;
+            --accent-glow: rgba(78, 205, 196, 0.15);
+            --text-primary: #e8f5f3;
+            --text-secondary: #a0c4be;
+            --text-muted: #6b9990;
+            --border: rgba(78, 205, 196, 0.2);
+            --border-strong: rgba(78, 205, 196, 0.4);
+            --divider: rgba(78, 205, 196, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.75;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 20% 10%, rgba(46, 125, 115, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(78, 205, 196, 0.08) 0%, transparent 50%);
+        }
+
+        header {
+            background: linear-gradient(135deg, #0d2420 0%, #1a3530 60%, #0f2825 100%);
+            border-bottom: 1px solid var(--border-strong);
+            padding: 60px 40px 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(78, 205, 196, 0.18) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .app-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--accent-glow);
+            border: 1px solid var(--border-strong);
+            border-radius: 50px;
+            padding: 6px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+            letter-spacing: 0.04em;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+        }
+        header h1 {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, #e8f5f3 0%, var(--accent) 60%, #7ef5f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header > p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .meta-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(78, 205, 196, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 60px 30px 100px; }
+
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px 36px;
+            margin-bottom: 52px;
+            position: relative;
+            overflow: hidden;
+        }
+        .toc::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #7ef5f0, var(--accent-dim));
+        }
+        .toc h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 18px;
+        }
+        .toc ol {
+            list-style: none;
+            counter-reset: toc;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 20px;
+        }
+        .toc ol li { counter-increment: toc; display: flex; align-items: center; gap: 10px; }
+        .toc ol li::before {
+            content: counter(toc, decimal-leading-zero);
+            font-size: 11px; font-weight: 700;
+            color: var(--accent); min-width: 24px;
+        }
+        .toc a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .toc a:hover { color: var(--accent); }
+
+        section { margin-bottom: 56px; }
+        section:last-child { margin-bottom: 0; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--divider);
+        }
+        .section-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: var(--accent-glow);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .section-number { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+        h2 { font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+
+        p { color: var(--text-secondary); margin-bottom: 14px; font-size: 15.5px; }
+        p:last-child { margin-bottom: 0; }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin: 20px 0;
+        }
+        .info-card.highlight { border-color: var(--border-strong); background: rgba(78, 205, 196, 0.06); }
+        .info-card-title { font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
+
+        .permission-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+        .permission-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 22px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .permission-item:hover { border-color: var(--border-strong); background: rgba(78, 205, 196, 0.05); }
+        .permission-icon { font-size: 22px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
+        .permission-content { flex: 1; }
+        .permission-name { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+        .permission-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+        .permission-badge {
+            align-self: flex-start;
+            background: rgba(78, 205, 196, 0.12);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            padding: 3px 10px;
+            border-radius: 50px;
+            white-space: nowrap;
+        }
+
+        .alert {
+            display: flex; gap: 14px;
+            background: rgba(78, 205, 196, 0.07);
+            border: 1px solid var(--border-strong);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin: 22px 0;
+        }
+        .alert-icon { font-size: 20px; flex-shrink: 0; line-height: 1.5; }
+        .alert p { font-size: 14.5px; margin: 0; color: var(--text-secondary); }
+        .alert p strong { color: var(--accent); }
+
+        ul.styled-list { list-style: none; margin: 16px 0; display: flex; flex-direction: column; gap: 10px; }
+        ul.styled-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+        ul.styled-list li::before { content: '▸'; color: var(--accent); font-size: 12px; margin-top: 4px; flex-shrink: 0; }
+
+        .contact-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 16px;
+            padding: 32px 36px;
+            text-align: center;
+            margin-top: 24px;
+        }
+        .contact-box p { font-size: 14.5px; margin-bottom: 6px; }
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 30px 40px;
+            text-align: center;
+        }
+        footer p { font-size: 13px; color: var(--text-muted); margin: 0; }
+        footer strong { color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .toc ol { grid-template-columns: 1fr; }
+            .meta-info { gap: 12px; }
+            header { padding: 40px 24px 36px; }
+            .container { padding: 40px 20px 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="app-badge">&#128300; Célula Secreta – Jogo Educativo</div>
+    <h1>Política de Privacidade</h1>
+    <p>Transparência completa sobre como o aplicativo funciona e quais recursos do seu dispositivo ele utiliza.</p>
+    <div class="meta-info">
+        <div class="meta-chip">&#128197; Última atualização: Agosto de 2026</div>
+        <div class="meta-chip">&#127991; Versão do app: 4.2.0</div>
+        <div class="meta-chip">&#127760; Idioma: Português (Brasil)</div>
+    </div>
+</header>
+
+<main class="container">
+
+    <nav class="toc">
+        <h2>Índice</h2>
+        <ol>
+            <li><a href="#introducao">Introdução e Identificação</a></li>
+            <li><a href="#sobre-app">O Que é o Aplicativo</a></li>
+            <li><a href="#dados-coletados">Dados Coletados</a></li>
+            <li><a href="#permissoes">Permissões Necessárias</a></li>
+            <li><a href="#rede-local">Comunicação em Rede Local</a></li>
+            <li><a href="#armazenamento">Armazenamento e Sessão</a></li>
+            <li><a href="#terceiros">Serviços de Terceiros</a></li>
+            <li><a href="#direitos">Seus Direitos</a></li>
+            <li><a href="#criancas">Público-Alvo e Menores</a></li>
+            <li><a href="#alteracoes">Alterações nesta Política</a></li>
+            <li><a href="#contato">Contato</a></li>
+        </ol>
+    </nav>
+
+    <section id="introducao">
+        <div class="section-header">
+            <div class="section-icon">&#128203;</div>
+            <div>
+                <div class="section-number">Seção 01</div>
+                <h2>Introdução e Identificação</h2>
+            </div>
+        </div>
+        <p>Esta Política de Privacidade descreve, de forma clara e objetiva, como o aplicativo <strong>Célula Secreta</strong> coleta, utiliza, armazena e compartilha (ou não) as informações relacionadas ao uso do software por parte dos seus usuários.</p>
+        <p>O <strong>Célula Secreta</strong> é desenvolvido por <strong>JotaPe</strong> e distribuído por meio da <strong>Microsoft Store</strong>. Ao instalar e utilizar o aplicativo, o usuário declara ter lido e concordado com os termos aqui descritos.</p>
+        <div class="alert">
+            <div class="alert-icon">&#128274;</div>
+            <p><strong>Compromisso com a privacidade:</strong> O Célula Secreta foi projetado com foco na privacidade desde o início. Nenhuma informação pessoal identificável é coletada, armazenada em servidores externos ou transmitida para a internet.</p>
+        </div>
+    </section>
+
+    <section id="sobre-app">
+        <div class="section-header">
+            <div class="section-icon">&#128300;</div>
+            <div>
+                <div class="section-number">Seção 02</div>
+                <h2>O Que é o Aplicativo</h2>
+            </div>
+        </div>
+        <p><strong>Célula Secreta</strong> é um jogo educativo de perguntas e respostas temático sobre biologia celular. O objetivo do jogo é descobrir, por meio de perguntas estratégicas, qual carta (célula ou organela) o adversário escolheu secretamente — inspirado na mecânica clássica do jogo "Cara a Cara".</p>
+        <div class="info-card">
+            <div class="info-card-title">Funcionalidades principais</div>
+            <ul class="styled-list">
+                <li><strong>Modo Solo (Single Player):</strong> o usuário joga de forma independente, sem necessidade de conexão de rede.</li>
+                <li><strong>Modo Multiplayer Local:</strong> dois jogadores na mesma rede Wi-Fi/LAN podem se conectar para disputar uma partida em tempo real, sem intermediação de servidores externos.</li>
+                <li><strong>Baralho temático:</strong> o jogo contém cartas de células (animal, vegetal, bacteriana, fúngica etc.) e de organelas celulares, cada uma com propriedades, funções e ilustrações científicas.</li>
+                <li><strong>Sistema de perguntas:</strong> o jogador faz perguntas sobre características das cartas (ex.: "Tem núcleo?", "É procariótica?") para eliminar opções e descobrir a carta do adversário.</li>
+                <li><strong>Código de sala:</strong> no modo multiplayer, o anfitrião gera automaticamente um código alfanumérico de 6 caracteres (ex: AB3X7K) que é compartilhado com o outro jogador para ingressar na partida.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="dados-coletados">
+        <div class="section-header">
+            <div class="section-icon">&#128452;</div>
+            <div>
+                <div class="section-number">Seção 03</div>
+                <h2>Dados Coletados</h2>
+            </div>
+        </div>
+        <div class="alert">
+            <div class="alert-icon">&#9989;</div>
+            <p><strong>O Célula Secreta não coleta nenhum dado pessoal.</strong> O aplicativo não solicita cadastro, login, nome, e-mail, senha ou qualquer outra informação de identificação pessoal.</p>
+        </div>
+        <p>A tabela abaixo detalha todos os tipos de informação que o aplicativo processa durante o uso:</p>
+        <div class="permission-grid">
+            <div class="permission-item">
+                <div class="permission-icon">&#128225;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Endereço IP local da máquina</div>
+                    <p class="permission-desc">Quando o usuário cria uma sala multiplayer, o aplicativo detecta o endereço IPv4 da interface de rede local do próprio dispositivo para anunciá-lo na rede Wi-Fi/LAN. Esse IP é transmitido exclusivamente dentro da rede local durante a duração da sessão e nunca é enviado para servidores externos nem armazenado em disco.</p>
+                </div>
+                <div class="permission-badge">Temporário</div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-icon">&#127918;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Estado da partida (dados do jogo)</div>
+                    <p class="permission-desc">O progresso da partida (cartas selecionadas, perguntas feitas, turno atual) é mantido exclusivamente na memória RAM enquanto o jogo está em execução. Ao encerrar o aplicativo, todos esses dados são descartados automaticamente.</p>
+                </div>
+                <div class="permission-badge">Na memória</div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-icon">&#128203;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Área de transferência (clipboard)</div>
+                    <p class="permission-desc">Quando o anfitrião clica em "Copiar Código", o código de sala de 6 caracteres é escrito na área de transferência do sistema operacional para facilitar o compartilhamento. Nenhuma leitura do conteúdo pré-existente do clipboard é realizada.</p>
+                </div>
+                <div class="permission-badge">Escrita apenas</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="permissoes">
+        <div class="section-header">
+            <div class="section-icon">&#128273;</div>
+            <div>
+                <div class="section-number">Seção 04</div>
+                <h2>Permissões Necessárias</h2>
+            </div>
+        </div>
+        <p>Para funcionar corretamente, o <strong>Célula Secreta</strong> pode solicitar as seguintes permissões ao sistema operacional Windows. Cada permissão está descrita com sua finalidade específica:</p>
+        <div class="permission-grid">
+            <div class="permission-item">
+                <div class="permission-icon">&#127760;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Acesso à Rede Local (LAN / Private Networks)</div>
+                    <p class="permission-desc"><strong>Por que é necessária:</strong> O modo multiplayer usa a rede local (Wi-Fi ou cabo) para comunicação direta entre dois dispositivos. O aplicativo abre portas TCP (54321) e UDP (54322) apenas na rede privada para transmitir o estado do jogo entre os jogadores. Nenhum dado trafega pela internet pública.</p>
+                </div>
+                <div class="permission-badge">Multiplayer</div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-icon">&#128226;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Envio de Pacotes Broadcast UDP</div>
+                    <p class="permission-desc"><strong>Por que é necessária:</strong> O anfitrião da partida anuncia periodicamente o código da sala via pacotes UDP de broadcast (transmissão para toda a rede local) para que o outro jogador possa descobrir automaticamente o endereço IP do anfitrião ao digitar o código. Esse mecanismo substitui a necessidade de digitar um endereço IP manualmente.</p>
+                </div>
+                <div class="permission-badge">Multiplayer</div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-icon">&#128421;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Enumeração de Interfaces de Rede</div>
+                    <p class="permission-desc"><strong>Por que é necessária:</strong> Para identificar corretamente o IP do dispositivo na rede local, o aplicativo lista as interfaces de rede disponíveis (Wi-Fi, Ethernet) e seleciona automaticamente o endereço IPv4 privado mais adequado, descartando adaptadores virtuais (VirtualBox, VMware, Docker) que poderiam causar erros de conexão.</p>
+                </div>
+                <div class="permission-badge">Multiplayer</div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-icon">&#128203;</div>
+                <div class="permission-content">
+                    <div class="permission-name">Acesso à Área de Transferência</div>
+                    <p class="permission-desc"><strong>Por que é necessária:</strong> Permite ao anfitrião copiar o código de sala gerado automaticamente para a área de transferência do Windows, facilitando o compartilhamento. Somente a escrita é realizada — o aplicativo não lê o conteúdo existente na área de transferência.</p>
+                </div>
+                <div class="permission-badge">Opcional</div>
+            </div>
+        </div>
+        <div class="alert">
+            <div class="alert-icon">&#8505;&#65039;</div>
+            <p><strong>Modo Solo:</strong> Ao jogar no modo "Jogar Sozinho", nenhuma das permissões de rede é utilizada. O jogo funciona de forma completamente offline e local nesse modo.</p>
+        </div>
+    </section>
+
+    <section id="rede-local">
+        <div class="section-header">
+            <div class="section-icon">&#128279;</div>
+            <div>
+                <div class="section-number">Seção 05</div>
+                <h2>Comunicação em Rede Local</h2>
+            </div>
+        </div>
+        <p>O modo multiplayer do <strong>Célula Secreta</strong> utiliza uma arquitetura de comunicação direta entre dispositivos (<em>peer-to-peer</em>) exclusivamente na rede local. Veja como funciona:</p>
+        <div class="info-card highlight">
+            <div class="info-card-title">Fluxo de conexão multiplayer</div>
+            <ul class="styled-list">
+                <li><strong>Criação de sala:</strong> O anfitrião gera um código aleatório de 6 caracteres (ex: AB3X7K) e começa a transmitir, a cada 2 segundos, um pacote UDP de broadcast contendo esse código junto com seu IP local.</li>
+                <li><strong>Ingresso na sala:</strong> O jogador cliente digita o código recebido. O aplicativo escuta pacotes UDP na rede por até 10 segundos para encontrar o broadcast do anfitrião com esse código e obter seu IP.</li>
+                <li><strong>Conexão TCP:</strong> Após descobrir o IP do anfitrião, é estabelecida uma conexão TCP direta (porta 54321) entre os dois dispositivos para troca de dados do jogo em tempo real.</li>
+                <li><strong>Dados transmitidos:</strong> Apenas o estado do jogo é transmitido (cartas, perguntas, respostas, turno). Nenhuma informação pessoal é enviada.</li>
+                <li><strong>Encerramento:</strong> Ao fechar o jogo ou cancelar a partida, todas as conexões e sockets são encerrados imediatamente e os dados são descartados da memória.</li>
+            </ul>
+        </div>
+        <p>Todo o tráfego de rede ocorre <strong>exclusivamente dentro da rede local privada</strong> (Wi-Fi doméstico, rede escolar, cabo). O aplicativo não realiza conexões com a internet e não possui servidores externos de qualquer natureza.</p>
+    </section>
+
+    <section id="armazenamento">
+        <div class="section-header">
+            <div class="section-icon">&#128190;</div>
+            <div>
+                <div class="section-number">Seção 06</div>
+                <h2>Armazenamento e Sessão</h2>
+            </div>
+        </div>
+        <p>O <strong>Célula Secreta</strong> não cria arquivos de configuração, logs persistentes ou bancos de dados no dispositivo do usuário. Os recursos do aplicativo (imagens das cartas, textos das perguntas, estilos visuais) são carregados diretamente do pacote de instalação e mantidos em memória durante a execução.</p>
+        <div class="info-card">
+            <div class="info-card-title">Resumo do armazenamento</div>
+            <ul class="styled-list">
+                <li>Os dados do jogo existem <strong>apenas na memória RAM</strong> enquanto o aplicativo está aberto.</li>
+                <li>Ao fechar o aplicativo, <strong>nenhum dado é salvo</strong> no disco rígido ou em nuvem.</li>
+                <li>Não há histórico de partidas, pontuações armazenadas ou preferências salvas.</li>
+                <li>O aplicativo não cria entradas no registro do Windows além das necessárias para instalação normal via Microsoft Store.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="terceiros">
+        <div class="section-header">
+            <div class="section-icon">&#129309;</div>
+            <div>
+                <div class="section-number">Seção 07</div>
+                <h2>Serviços de Terceiros</h2>
+            </div>
+        </div>
+        <p>O <strong>Célula Secreta</strong> é distribuído pela <strong>Microsoft Store</strong>. O processo de instalação, atualização e licenciamento é gerenciado pela Microsoft, conforme os próprios <a href="https://www.microsoft.com/pt-br/servicesagreement" style="color: var(--accent);" target="_blank" rel="noopener">Termos de Uso da Microsoft Store</a>.</p>
+        <div class="info-card">
+            <div class="info-card-title">Tecnologias utilizadas no desenvolvimento</div>
+            <ul class="styled-list">
+                <li><strong>Java 21 (OpenJDK):</strong> linguagem e plataforma de execução — incluso no pacote do app.</li>
+                <li><strong>JavaFX 21:</strong> framework de interface gráfica — incluso no pacote do app.</li>
+                <li><strong>Apache Maven:</strong> ferramenta de build utilizada no desenvolvimento (não presente no app instalado).</li>
+            </ul>
+        </div>
+        <p>Nenhuma dessas tecnologias coleta dados do usuário de forma autônoma dentro do contexto deste aplicativo. O runtime Java e o JavaFX são distribuídos juntamente com o aplicativo e não fazem comunicação externa.</p>
+    </section>
+
+    <section id="direitos">
+        <div class="section-header">
+            <div class="section-icon">&#9878;&#65039;</div>
+            <div>
+                <div class="section-number">Seção 08</div>
+                <h2>Seus Direitos</h2>
+            </div>
+        </div>
+        <p>Como o <strong>Célula Secreta</strong> não coleta, armazena nem processa dados pessoais dos usuários, não há dados sobre você em nossa posse para consultar, corrigir, exportar ou excluir.</p>
+        <p>Em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD – Lei nº 13.709/2018)</strong> e com o <strong>Regulamento Geral de Proteção de Dados (GDPR)</strong> da União Europeia, reafirmamos que:</p>
+        <ul class="styled-list">
+            <li>Nenhum dado pessoal é coletado durante o uso do aplicativo.</li>
+            <li>Nenhuma informação é compartilhada com parceiros, anunciantes ou terceiros.</li>
+            <li>O aplicativo não possui rastreamento, análise de comportamento (analytics) nem publicidade.</li>
+            <li>Não há perfil de usuário criado em nenhum servidor.</li>
+        </ul>
+    </section>
+
+    <section id="criancas">
+        <div class="section-header">
+            <div class="section-icon">&#127891;</div>
+            <div>
+                <div class="section-number">Seção 09</div>
+                <h2>Público-Alvo e Menores de Idade</h2>
+            </div>
+        </div>
+        <p>O <strong>Célula Secreta</strong> é um jogo educativo voltado para estudantes de biologia, professores e entusiastas das ciências. O conteúdo é adequado para todas as faixas etárias e possui classificação indicativa livre.</p>
+        <div class="alert">
+            <div class="alert-icon">&#128118;</div>
+            <p><strong>Crianças e adolescentes:</strong> Como o aplicativo não coleta nenhum dado pessoal e não requer cadastro ou criação de conta, ele pode ser utilizado com segurança por menores de idade, inclusive em ambientes escolares e educacionais, sem preocupações relativas à privacidade.</p>
+        </div>
+        <p>No modo multiplayer, a comunicação acontece exclusivamente entre os dois dispositivos presentes na mesma rede local. Não há comunicação com desconhecidos na internet, chats ou qualquer forma de interação social com terceiros.</p>
+    </section>
+
+    <section id="alteracoes">
+        <div class="section-header">
+            <div class="section-icon">&#128260;</div>
+            <div>
+                <div class="section-number">Seção 10</div>
+                <h2>Alterações nesta Política</h2>
+            </div>
+        </div>
+        <p>Esta Política de Privacidade pode ser atualizada periodicamente para refletir mudanças nas funcionalidades do aplicativo ou em requisitos legais. Quando alterações relevantes forem realizadas:</p>
+        <ul class="styled-list">
+            <li>A data de "Última atualização" no topo desta página será modificada.</li>
+            <li>Em caso de mudanças significativas que afetem a coleta ou o uso de dados, o usuário será notificado por meio da atualização do aplicativo na Microsoft Store.</li>
+            <li>A versão mais recente desta política estará sempre disponível no link indicado na página do aplicativo na Microsoft Store.</li>
+        </ul>
+        <p>Recomendamos que os usuários consultem esta política periodicamente para se manterem informados sobre eventuais mudanças.</p>
+    </section>
+
+    <section id="contato">
+        <div class="section-header">
+            <div class="section-icon">&#9993;&#65039;</div>
+            <div>
+                <div class="section-number">Seção 11</div>
+                <h2>Contato</h2>
+            </div>
+        </div>
+        <p>Em caso de dúvidas, solicitações ou sugestões relacionadas a esta Política de Privacidade ou ao aplicativo <strong>Célula Secreta</strong>, entre em contato pelo canal disponibilizado na página do aplicativo na Microsoft Store.</p>
+        <div class="contact-box">
+            <p><strong>Desenvolvedor:</strong> JotaPe</p>
+            <p><strong>Aplicativo:</strong> Célula Secreta – Versão 4.2.0</p>
+            <p style="margin-top: 16px; font-size: 13.5px; color: var(--text-muted);">Para suporte técnico ou questões de privacidade, utilize o botão<br><em>"Entrar em contato com o suporte"</em> disponível na listagem da Microsoft Store.</p>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 <strong>JotaPe</strong> — Todos os direitos reservados. | <strong>Célula Secreta</strong> v4.2.0 | Distribuído via <strong>Microsoft Store</strong></p>
+    <p style="margin-top: 8px;">Esta política é regida pela legislação brasileira, em especial pela Lei Geral de Proteção de Dados (LGPD – Lei nº 13.709/2018).</p>
+</footer>
+
+</body>
+</html>
